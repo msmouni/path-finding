@@ -23,22 +23,37 @@ void Tile::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     case TileType::Solid:
     {
         painter->setBrush(Qt::black);
-        painter->drawRect(m_rect);
         break;
     }
 
     case TileType::Empty:
     {
         painter->setBrush(Qt::lightGray);
-        painter->drawRect(m_rect);
+        break;
+    }
+    case TileType::Start:
+    {
+        painter->setBrush(Qt::green);
+        break;
+    }
+    case TileType::Target:
+    {
+        painter->setBrush(Qt::red);
         break;
     }
     default:
         break;
     }
+
+    painter->drawRect(m_rect);
 }
 
 void Tile::setType(TileType type)
 {
     m_type = type;
+}
+
+TileType Tile::getType()
+{
+    return m_type;
 }

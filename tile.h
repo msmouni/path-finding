@@ -8,6 +8,8 @@ enum class TileType
 {
     Empty,
     Solid,
+    Start,
+    Target,
 };
 
 class Tile : public QGraphicsItem
@@ -21,6 +23,7 @@ public:
                QWidget *widget) override;
 
     void setType(TileType type);
+    TileType getType();
 
 private:
     QRectF m_rect;
