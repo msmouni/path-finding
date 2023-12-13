@@ -23,7 +23,14 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(path-finding
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        map.h map.cpp
+        view.h view.cpp
+        tile.h tile.cpp
     )
+
+# https://stackoverflow.com/questions/18471827/qtcreator-cant-find-the-class-header-file-after-promoting-a-widget-to-that-clas
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET path-finding APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
 #                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
