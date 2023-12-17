@@ -2,9 +2,14 @@
 #define APP_H
 
 #include <QWidget>
+#include "map.h"
+#include "run.h"
 
 QT_BEGIN_NAMESPACE
-namespace Ui { class App; }
+namespace Ui
+{
+    class App;
+}
 QT_END_NAMESPACE
 
 class App : public QWidget
@@ -17,5 +22,8 @@ public:
 
 private:
     Ui::App *ui;
+
+    Map *m_map;
+    PathFindingRunner *m_path_finding;
 };
 #endif // APP_H
