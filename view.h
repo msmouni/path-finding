@@ -9,6 +9,8 @@ class View : public QGraphicsView
 public:
     View(QWidget *parent = nullptr);
 
+    Map *getMapPtr();
+
 private:
     QGraphicsScene *m_scene;
 

@@ -1,4 +1,7 @@
 #include "map.h"
+#include <QQueue>
+#include <QCoreApplication>
+#include <QElapsedTimer>
 
 Map::Map(QSizeF tile_size, int nb_rows, int nb_columns) : m_tile_size(tile_size), m_nb_rows(nb_rows), m_nb_columns(nb_columns), m_mouse_boutton(Qt::MouseButton::NoButton),
                                                           m_mouse_button_clicked(false), m_s_key_pressed(false), m_t_key_pressed(false),
@@ -26,6 +29,47 @@ QRectF Map::boundingRect() const
     return childrenBoundingRect();
 }
 
+QPoint Map::getStartIdx()
+{
+    QMutexLocker ml(&m_mutex);
+
+    return m_start_idx;
+}
+
+TileType Map::getTileType(QPoint indx)
+{
+    return getTileType(indx.x(), indx.y());
+}
+
+TileType Map::getTileType(int idx_x, int idx_y)
+{
+    QMutexLocker ml(&m_mutex);
+
+    return m_tiles[idx_x][idx_y]->getType();
+}
+
+void Map::setTileType(QPoint idx, TileType tile_type)
+{
+    setTileType(idx.x(), idx.y(), tile_type);
+}
+
+void Map::setTileType(int idx_x, int idx_y, TileType tile_type)
+{
+    QMutexLocker ml(&m_mutex);
+
+    m_tiles[idx_x][idx_y]->setType(tile_type);
+}
+
+int Map::getNbRows()
+{
+    return m_nb_rows;
+}
+
+int Map::getNbColumns()
+{
+    return m_nb_columns;
+}
+
 void Map::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     QPoint cursor_idx = getIndexesFromPointF(event->pos());
@@ -36,15 +80,15 @@ void Map::mousePressEvent(QGraphicsSceneMouseEvent *event)
         if (m_start_set)
         {
 
-            m_tiles[m_start_idx.x()][m_start_idx.y()]->setType(TileType::Empty);
+            setTileType(getStartIdx(), TileType::Empty);
         }
 
-        if (m_tiles[cursor_idx.x()][cursor_idx.y()]->getType() != TileType::Target)
+        if (getTileType(cursor_idx) != TileType::Target)
         {
 
             m_start_set = true;
-            m_start_idx = cursor_idx;
-            m_tiles[m_start_idx.x()][m_start_idx.y()]->setType(TileType::Start);
+            setStartIdx(cursor_idx);
+            setTileType(getStartIdx(), TileType::Start);
         }
 
         this->update();
@@ -53,14 +97,14 @@ void Map::mousePressEvent(QGraphicsSceneMouseEvent *event)
     {
         if (m_target_set)
         {
-            m_tiles[m_target_idx.x()][m_target_idx.y()]->setType(TileType::Empty);
+            setTileType(getTargetIdx(), TileType::Empty);
         }
 
-        if (m_tiles[cursor_idx.x()][cursor_idx.y()]->getType() != TileType::Start)
+        if (getTileType(cursor_idx) != TileType::Start)
         {
             m_target_set = true;
-            m_target_idx = cursor_idx;
-            m_tiles[m_target_idx.x()][m_target_idx.y()]->setType(TileType::Target);
+            setTargetIdx(cursor_idx);
+            setTileType(getTargetIdx(), TileType::Target);
 
             this->update();
         }
@@ -70,11 +114,18 @@ void Map::mousePressEvent(QGraphicsSceneMouseEvent *event)
         m_mouse_boutton = event->button();
         m_mouse_button_clicked = true;
         m_last_mouse_indexes = cursor_idx;
+        tileClicked(cursor_idx);
+
+        this->update();
     }
+
+    clearVisited();
+    emit stopPathFinding();
 }
 
 void Map::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
+    emit tryToFindPath();
     m_mouse_boutton = Qt::MouseButton::NoButton;
     m_mouse_button_clicked = false;
 }
@@ -94,27 +145,31 @@ void Map::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
             m_last_mouse_indexes = indexes;
         }
 
-        if (indexes.x() == m_last_mouse_indexes.x())
+        if (m_mouse_button_clicked)
         {
-            for (int j = fmin(indexes.y(), m_last_mouse_indexes.y()); j <= fmax(indexes.y(), m_last_mouse_indexes.y()); j++)
+
+            if (indexes.x() == m_last_mouse_indexes.x())
             {
-                tileClicked(QPoint(indexes.x(), j));
+                for (int j = fmin(indexes.y(), m_last_mouse_indexes.y()); j <= fmax(indexes.y(), m_last_mouse_indexes.y()); j++)
+                {
+                    tileClicked(QPoint(indexes.x(), j));
+                }
             }
-        }
-        else
-        {
-            qreal a = (indexes.y() - m_last_mouse_indexes.y()) / (indexes.x() - m_last_mouse_indexes.x());
-            qreal b = indexes.y() - a * indexes.x();
-
-            for (int i = fmin(indexes.x(), m_last_mouse_indexes.x()); i <= fmax(indexes.x(), m_last_mouse_indexes.x()); i++)
+            else
             {
-                tileClicked(QPoint(i, a * i + b));
+                qreal a = (indexes.y() - m_last_mouse_indexes.y()) / (indexes.x() - m_last_mouse_indexes.x());
+                qreal b = indexes.y() - a * indexes.x();
+
+                for (int i = fmin(indexes.x(), m_last_mouse_indexes.x()); i <= fmax(indexes.x(), m_last_mouse_indexes.x()); i++)
+                {
+                    tileClicked(QPoint(i, a * i + b));
+                }
             }
+
+            m_last_mouse_indexes = indexes;
+
+            this->update();
         }
-
-        m_last_mouse_indexes = indexes;
-
-        this->update();
     }
     else
     {
@@ -162,6 +217,27 @@ void Map::focusOutEvent(QFocusEvent *event)
     QGraphicsItem::focusOutEvent(event);
 }
 
+void Map::setStartIdx(QPoint idx)
+{
+    QMutexLocker ml(&m_mutex);
+
+    m_start_idx = idx;
+}
+
+void Map::setTargetIdx(QPoint idx)
+{
+    QMutexLocker ml(&m_mutex);
+
+    m_target_idx = idx;
+}
+
+QPoint Map::getTargetIdx()
+{
+    QMutexLocker ml(&m_mutex);
+
+    return m_target_idx;
+}
+
 QPoint Map::getIndexesFromPointF(QPointF point)
 {
     return QPoint(point.x() / m_tile_size.width(), point.y() / m_tile_size.height());
@@ -169,22 +245,56 @@ QPoint Map::getIndexesFromPointF(QPointF point)
 
 void Map::tileClicked(QPoint tile_indexes)
 {
+    TileType tile_type = getTileType(tile_indexes);
+
     switch (m_mouse_boutton)
     {
     case Qt::MouseButton::RightButton:
-        m_tiles[tile_indexes.x()][tile_indexes.y()]->setType(TileType::Empty);
+        if (tile_type == TileType::Start)
+        {
+            m_start_set = false;
+            clearVisited();
+        }
+        else if (tile_type == TileType::Target)
+        {
+            m_target_set = false;
+            clearVisited();
+        }
+        setTileType(tile_indexes, TileType::Empty);
         break;
     case Qt::MouseButton::LeftButton:
     {
-        TileType tile_type = m_tiles[tile_indexes.x()][tile_indexes.y()]->getType();
-
         if (tile_type != TileType::Start && tile_type != TileType::Target)
         {
-            m_tiles[tile_indexes.x()][tile_indexes.y()]->setType(TileType::Solid);
+            setTileType(tile_indexes, TileType::Solid);
         }
         break;
     }
     default:
         break;
+    }
+}
+
+void Map::tryToFindPath()
+{
+    if (m_target_set && m_start_set)
+    {
+        emit findPath();
+    }
+}
+
+void Map::clearVisited()
+{
+    QMutexLocker ml(&m_mutex);
+
+    for (const QVector<Tile *> &tile_column : m_tiles)
+    {
+        for (Tile *tile : tile_column)
+        {
+            if (tile->getType() == TileType::Visited || tile->getType() == TileType::Path)
+            {
+                tile->setType(TileType::Empty);
+            }
+        }
     }
 }

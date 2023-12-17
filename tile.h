@@ -10,6 +10,8 @@ enum class TileType
     Solid,
     Start,
     Target,
+    Visited,
+    Path,
 };
 
 class Tile : public QGraphicsItem

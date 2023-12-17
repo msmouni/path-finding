@@ -26,6 +26,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         map.h map.cpp
         view.h view.cpp
         tile.h tile.cpp
+        find.h find.cpp
+        run.h run.cpp
     )
 
 # https://stackoverflow.com/questions/18471827/qtcreator-cant-find-the-class-header-file-after-promoting-a-widget-to-that-clas
