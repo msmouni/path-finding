@@ -3,6 +3,7 @@
 
 #include "find.h"
 #include <QThread>
+#include "bfs.h"
 
 class PathFindingRunner : public QThread
 {
@@ -16,7 +17,7 @@ protected slots:
     void restart();
 
 private:
-    PathFinding *m_path_finding;
+    Bfs *m_bfs;
 };
 
 #endif // PATHFINDINGRUNNER_H
