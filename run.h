@@ -4,6 +4,7 @@
 #include <QThread>
 #include "bfs.h"
 #include "dijkstra.h"
+#include "a_star.h"
 
 class PathFindingRunner : public QThread
 {
@@ -19,6 +20,7 @@ protected slots:
 private:
     Bfs *m_bfs;
     Dijkstra *m_dijstra;
+    Astar *m_a_star;
 };
 
 #endif // PATHFINDINGRUNNER_H
