@@ -1,9 +1,9 @@
 #ifndef PATHFINDINGRUNNER_H
 #define PATHFINDINGRUNNER_H
 
-#include "find.h"
 #include <QThread>
 #include "bfs.h"
+#include "dijkstra.h"
 
 class PathFindingRunner : public QThread
 {
@@ -18,6 +18,7 @@ protected slots:
 
 private:
     Bfs *m_bfs;
+    Dijkstra *m_dijstra;
 };
 
 #endif // PATHFINDINGRUNNER_H
