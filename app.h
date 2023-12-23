@@ -19,6 +19,8 @@ class App : public QWidget
 public:
     App(QWidget *parent = nullptr);
     ~App();
+private slots:
+    void setVisualizationDelay(int val);
 
 private:
     Ui::App *ui;

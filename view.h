@@ -6,10 +6,13 @@
 
 class View : public QGraphicsView
 {
+//    Q_OBJECT
 public:
     View(QWidget *parent = nullptr);
 
     Map *getMapPtr();
+//private slots:
+//    void mapUpdated();
 
 private:
     QGraphicsScene *m_scene;

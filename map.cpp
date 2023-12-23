@@ -3,25 +3,12 @@
 #include <QCoreApplication>
 #include <QElapsedTimer>
 
-Map::Map(QSizeF tile_size, int nb_rows, int nb_columns) : m_tile_size(tile_size), m_nb_rows(nb_rows), m_nb_columns(nb_columns), m_mouse_boutton(Qt::MouseButton::NoButton),
-                                                          m_mouse_button_clicked(false), m_s_key_pressed(false), m_t_key_pressed(false),
-                                                          m_start_set(false), m_target_set(false)
+Map::Map(QSizeF tile_size, int nb_rows, int nb_columns) : m_tile_size(tile_size), m_nb_rows(nb_rows), m_nb_columns(nb_columns)
 {
     setFlag(QGraphicsItem::ItemIsFocusable);
     setFocus();
 
-    for (int i = 0; i < m_nb_columns; i++)
-    {
-        QVector<Tile *> tile_column;
-
-        for (int j = 0; j < m_nb_rows; j++)
-        {
-            tile_column.append(new Tile(QRectF(i * m_tile_size.width(), j * m_tile_size.height(), m_tile_size.width(), m_tile_size.height())));
-
-            this->addToGroup(tile_column.last());
-        }
-        m_tiles.append(tile_column);
-    }
+    init();
 }
 
 QRectF Map::boundingRect() const
@@ -62,11 +49,15 @@ void Map::setTileType(int idx_x, int idx_y, TileType tile_type)
 
 int Map::getNbRows()
 {
+    QMutexLocker ml(&m_mutex);
+
     return m_nb_rows;
 }
 
 int Map::getNbColumns()
 {
+    QMutexLocker ml(&m_mutex);
+
     return m_nb_columns;
 }
 
@@ -125,7 +116,7 @@ void Map::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 void Map::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    emit tryToFindPath();
+    tryToFindPath();
     m_mouse_boutton = Qt::MouseButton::NoButton;
     m_mouse_button_clicked = false;
 }
@@ -217,6 +208,51 @@ void Map::focusOutEvent(QFocusEvent *event)
     QGraphicsItem::focusOutEvent(event);
 }
 
+void Map::init()
+{
+    emit stopPathFinding();
+
+    QMutexLocker ml(&m_mutex);
+
+    m_mouse_boutton=Qt::MouseButton::NoButton;
+    m_mouse_button_clicked=false;
+    m_s_key_pressed=false;
+    m_t_key_pressed=false;
+    m_start_set=false;
+    m_target_set=false;
+
+    for (QVector<Tile*> &item_vec:m_tiles){
+        for (Tile* item:item_vec){
+            /*
+             * NOTE: removeFromGroup() Removes the specified item from this group. The item will be reparented to this group's parent item, or to 0 if this group has no parent.
+             * Its position and transformation relative to the scene will stay intact.
+             */
+            this->removeFromGroup(item);
+
+            delete item;
+        }
+    }
+
+    m_tiles.clear();
+
+    for (int i = 0; i < m_nb_columns; i++)
+    {
+        QVector<Tile *> tile_column;
+
+        for (int j = 0; j < m_nb_rows; j++)
+        {
+            tile_column.append(new Tile(QRectF(i * m_tile_size.width(), j * m_tile_size.height(), m_tile_size.width(), m_tile_size.height())));
+
+            this->addToGroup(tile_column.last());
+        }
+        m_tiles.append(tile_column);
+    }
+
+    ml.unlock();
+
+    emit updated();
+}
+
 void Map::setStartIdx(QPoint idx)
 {
     QMutexLocker ml(&m_mutex);
@@ -297,4 +333,26 @@ void Map::clearVisited()
             }
         }
     }
+}
+
+void Map::setNbRows(int nb_rows)
+{
+    QMutexLocker ml(&m_mutex);
+    m_nb_rows=nb_rows;
+    ml.unlock();
+
+    init();
+
+    this->update();
+}
+
+void Map::setNbColumns(int nb_columns)
+{
+    QMutexLocker ml(&m_mutex);
+    m_nb_columns=nb_columns;
+    ml.unlock();
+
+    init();
+
+    this->update();
 }

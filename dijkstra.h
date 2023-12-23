@@ -38,7 +38,7 @@ public:
         m_parents = new_parents;
     }
 
-    void reinit(qreal new_weight)
+    void reset(qreal new_weight)
     {
         setWeight(new_weight);
         m_parents.clear();
@@ -56,6 +56,7 @@ class Dijkstra : public PathFinding
 public:
     explicit Dijkstra(QObject *parent = nullptr, Map *map = nullptr);
 
+    void init();
     void find();
 
 private:
@@ -67,7 +68,7 @@ private:
 
     void reinitWeightMap();
 
-    void reinit();
+    void reset();
     void processTile(const int &tile_idx_x, const int &tile_idx_y);
 };
 

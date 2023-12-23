@@ -4,13 +4,20 @@
 Bfs::Bfs(QObject *parent, Map *map)
     : PathFinding{parent, map}
 {
+    init();
 }
+
+void Bfs::init()
+{
+    reset();
+}
+
 
 void Bfs::find()
 {
     //    qDebug() << "Running Bfs in Thread:" << QThread::currentThreadId();
 
-    reinit();
+    reset();
 
     qint64 duration = 0;
 
@@ -39,7 +46,7 @@ void Bfs::find()
                 {
                     m_map->setTileType(tile_pos.x(), tile_pos.y(), TileType::Path);
 
-                    QThread::msleep(10);
+                    QThread::msleep(m_visual_delay_ms);
 
                     m_map->update();
                 }
@@ -53,13 +60,14 @@ void Bfs::find()
         duration += m_timer.nsecsElapsed() / 1000;
         m_map->update();
 
-        QThread::msleep(5);
+        QThread::msleep(m_visual_delay_ms);
 
         m_timer.restart();
     }
 }
 
-void Bfs::reinit()
+
+void Bfs::reset()
 {
     m_map->clearVisited();
 

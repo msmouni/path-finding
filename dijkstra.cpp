@@ -5,21 +5,30 @@
 Dijkstra::Dijkstra(QObject *parent, Map *map)
     : PathFinding{parent, map}
 {
-    for (int i = 0; i < map->getNbColumns(); i++)
+    init();
+}
+
+void Dijkstra::init()
+{
+    m_weight_map.clear();
+
+    for (int i = 0; i < m_map->getNbColumns(); i++)
     {
         QVector<DijkstraTile> tile_line;
-        for (int j = 0; j < map->getNbRows(); j++)
+        for (int j = 0; j < m_map->getNbRows(); j++)
         {
             tile_line.append(DijkstraTile(MAX_WEIGHT_VALUE, QPoint(i, j)));
         }
 
         m_weight_map.append(tile_line);
     }
+
+    reset();
 }
 
 void Dijkstra::find()
 {
-    reinit();
+    reset();
 
     qint64 duration = 0;
 
@@ -45,7 +54,7 @@ void Dijkstra::find()
                 {
                     m_map->setTileType(tile_pos.x(), tile_pos.y(), TileType::Path);
 
-                    QThread::msleep(10);
+                    QThread::msleep(m_visual_delay_ms);
 
                     m_map->update();
                 }
@@ -61,11 +70,13 @@ void Dijkstra::find()
         duration += m_timer.nsecsElapsed() / 1000;
         m_map->update();
 
-        QThread::msleep(5);
+        QThread::msleep(m_visual_delay_ms);
 
         m_timer.restart();
     }
 }
+
+
 
 void Dijkstra::reinitWeightMap()
 {
@@ -73,13 +84,15 @@ void Dijkstra::reinitWeightMap()
     {
         for (int j = 0; j < m_map->getNbRows(); j++)
         {
-            m_weight_map[i][j].reinit(MAX_WEIGHT_VALUE);
+            m_weight_map[i][j].reset(MAX_WEIGHT_VALUE);
         }
     }
 }
 
-void Dijkstra::reinit()
+void Dijkstra::reset()
 {
+    m_map->clearVisited();
+
     reinitWeightMap();
 
     m_timer.restart();

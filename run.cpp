@@ -11,9 +11,53 @@ PathFindingRunner::PathFindingRunner(Map *map)
 
 void PathFindingRunner::run()
 {
-    //     m_bfs->find();
-    //    m_dijstra->find();
-    m_a_star->find();
+    switch (m_selected_algo){
+        case PathFindingAlgos::Bfs :{
+            m_bfs->find();
+            break;
+        }
+        case PathFindingAlgos::Dijkstra :{
+            m_dijstra->find();
+            break;
+        }
+        case PathFindingAlgos::Astar :{
+            m_a_star->find();
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+void PathFindingRunner::setVisualDelayMs(int delay_ms)
+{
+    m_bfs->setVisualDelayMs(delay_ms);
+    m_dijstra->setVisualDelayMs(delay_ms);
+    m_a_star->setVisualDelayMs(delay_ms);
+}
+
+void PathFindingRunner::reinit()
+{
+//    m_bfs->init();
+//    m_dijstra->init();
+//    m_a_star->init();
+
+    switch (m_selected_algo){
+    case PathFindingAlgos::Bfs :{
+            m_bfs->init();
+            break;
+    }
+    case PathFindingAlgos::Dijkstra :{
+            m_dijstra->init();
+            break;
+    }
+    case PathFindingAlgos::Astar :{
+            m_a_star->init();
+            break;
+    }
+    default:
+            break;
+    }
 }
 
 void PathFindingRunner::restart()
@@ -23,5 +67,20 @@ void PathFindingRunner::restart()
         terminate();
         wait();
     }
+    start();
+}
+
+void PathFindingRunner::setAlgo(int algo_int)
+{
+    if (isRunning())
+    {
+        terminate();
+        wait();
+    }
+
+    m_selected_algo=getAlgoFromInt(algo_int);
+
+    reinit();
+
     start();
 }

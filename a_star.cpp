@@ -4,21 +4,30 @@
 Astar::Astar(QObject *parent, Map *map)
     : PathFinding{parent, map}
 {
-    for (int i = 0; i < map->getNbColumns(); i++)
+    init();
+}
+
+void Astar::init()
+{
+    m_weight_map.clear();
+
+    for (int i = 0; i < m_map->getNbColumns(); i++)
     {
         QVector<AstarTile> tile_line;
-        for (int j = 0; j < map->getNbRows(); j++)
+        for (int j = 0; j < m_map->getNbRows(); j++)
         {
             tile_line.append(AstarTile(MAX_WEIGHT_VALUE, 0, QPoint(i, j)));
         }
 
         m_weight_map.append(tile_line);
     }
+
+    reset();
 }
 
 void Astar::find()
 {
-    reinit();
+    reset();
 
     qint64 duration = 0;
 
@@ -46,7 +55,7 @@ void Astar::find()
                 {
                     m_map->setTileType(tile_pos.x(), tile_pos.y(), TileType::Path);
 
-                    QThread::msleep(10);
+                    QThread::msleep(m_visual_delay_ms);
 
                     m_map->update();
                 }
@@ -62,11 +71,13 @@ void Astar::find()
         duration += m_timer.nsecsElapsed() / 1000;
         m_map->update();
 
-        QThread::msleep(5);
+        QThread::msleep(m_visual_delay_ms);
 
         m_timer.restart();
     }
 }
+
+
 
 void Astar::reinitWeightMap()
 {
@@ -74,7 +85,7 @@ void Astar::reinitWeightMap()
     {
         for (int j = 0; j < m_map->getNbRows(); j++)
         {
-            m_weight_map[i][j].reinit(MAX_WEIGHT_VALUE, 0);
+            m_weight_map[i][j].reset(MAX_WEIGHT_VALUE, 0);
         }
     }
 }
@@ -92,8 +103,9 @@ qreal Astar::getEstimatedTargetCost(const int &idx_x, const int &idx_y)
     return sqrt(pow(target_idx.rx() - idx_x, 2) + pow(target_idx.ry() - idx_y, 2));
 }
 
-void Astar::reinit()
+void Astar::reset()
 {
+    m_map->clearVisited();
     reinitWeightMap();
 
     m_timer.restart();
