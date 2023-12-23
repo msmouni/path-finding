@@ -16,6 +16,7 @@ public:
     QRectF boundingRect() const override;
 
     QPoint getStartIdx();
+    QPoint getTargetIdx();
     TileType getTileType(QPoint indx);
     TileType getTileType(int idx_x, int idx_y);
     void setTileType(QPoint idx, TileType tile_type);
@@ -63,7 +64,6 @@ private:
 
     void setStartIdx(QPoint idx);
     void setTargetIdx(QPoint idx);
-    QPoint getTargetIdx();
 
     QPoint getIndexesFromPointF(QPointF point);
     void tileClicked(QPoint tile_indexes);

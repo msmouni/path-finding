@@ -2,6 +2,8 @@
 #define PATHFINDING_H
 
 #include <QObject>
+#include <QVector>
+#include <QElapsedTimer>
 #include "map.h"
 
 class PathFinding : public QObject
@@ -10,13 +12,15 @@ class PathFinding : public QObject
 public:
     explicit PathFinding(QObject *parent = nullptr, Map *map = nullptr);
 
-    void find();
+    virtual void find() = 0;
 
 protected:
     Map *m_map;
+    QElapsedTimer m_timer;
 
-    void Bfs();
-    void addTileToBfsQueue(int idx_x, int idx_y, QQueue<QVector<QPoint>> &queue, QVector<QPoint> &current_parents);
+    virtual void processTile(const int &tile_idx_x, const int &tile_idx_y) = 0;
+    virtual void reinit() = 0;
+    void processAdjacentTiles(const QPoint &tile_idx);
 };
 
 #endif // PATHFINDING_H
