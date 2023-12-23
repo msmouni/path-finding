@@ -15,7 +15,7 @@ private:
 public:
     AstarTile(qreal cost = 0, qreal target_cost = 0, QPoint idx = QPoint(0, 0), QVector<QPoint> parents = QVector<QPoint>()) : m_cost(cost), m_estimated_target_cost(target_cost), m_idx(idx), m_parents(parents){};
 
-    QPoint &getIdx()
+    const QPoint &getIdx() const
     {
         return m_idx;
     }
@@ -29,7 +29,7 @@ public:
         m_cost = new_cost;
     }
 
-    qreal getCost()
+    qreal getCost() const
     {
         return m_cost;
     }
@@ -39,7 +39,7 @@ public:
         m_estimated_target_cost = new_target_cost;
     }
 
-    QVector<QPoint> getParents()
+    const QVector<QPoint> &getParents() const
     {
         return m_parents;
     }
@@ -74,12 +74,16 @@ private:
     const qreal MAX_WEIGHT_VALUE = 99999;
     QVector<QVector<AstarTile>> m_weight_map;
 
+    // Note reg std::multiset : https://stackoverflow.com/questions/5895792/why-is-using-a-stdmultiset-as-a-priority-queue-faster-than-using-a-stdpriori
+    std::priority_queue<AstarTile> m_priority_queue;
+
     void reinitWeightMap();
 
-    qreal getEstimatedTargetCost(QPoint idx);
-    qreal getEstimatedTargetCost(int &idx_x, int &idx_y);
+    qreal getEstimatedTargetCost(const QPoint &idx);
+    qreal getEstimatedTargetCost(const int &idx_x, const int &idx_y);
 
-    void addAstarTile(int idx_x, int idx_y, std::priority_queue<AstarTile> &priority_queue, AstarTile &current_tile);
+    void reinit();
+    void processTile(const int &tile_idx_x, const int &tile_idx_y);
 };
 
 #endif // ASTAR_H

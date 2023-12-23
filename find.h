@@ -4,7 +4,6 @@
 #include <QObject>
 #include <QVector>
 #include <QElapsedTimer>
-#include <functional>
 #include "map.h"
 
 class PathFinding : public QObject
@@ -19,7 +18,9 @@ protected:
     Map *m_map;
     QElapsedTimer m_timer;
 
-    void processAdjacentTiles(QPoint tile_idx, std::function<void(int, int)> process); // std::function is a general-purpose polymorphic function wrapper (or maybe use function reference or function pointer)
+    virtual void processTile(const int &tile_idx_x, const int &tile_idx_y) = 0;
+    virtual void reinit() = 0;
+    void processAdjacentTiles(const QPoint &tile_idx);
 };
 
 #endif // PATHFINDING_H

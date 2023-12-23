@@ -2,6 +2,7 @@
 #define BFS_H
 
 #include "find.h"
+#include <QQueue>
 
 class Bfs : public PathFinding
 {
@@ -11,7 +12,11 @@ public:
     void find();
 
 private:
-    void addTileToBfsQueue(int idx_x, int idx_y, QQueue<QVector<QPoint>> &queue, QVector<QPoint> &current_parents);
+    QQueue<QVector<QPoint>> m_queue;
+    QVector<QPoint> m_current_parents;
+
+    void reinit();
+    void processTile(const int &tile_idx_x, const int &tile_idx_y);
 };
 
 #endif // BFS_H

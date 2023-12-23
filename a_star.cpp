@@ -18,25 +18,20 @@ Astar::Astar(QObject *parent, Map *map)
 
 void Astar::find()
 {
-    reinitWeightMap();
-
-    m_timer.restart();
+    reinit();
 
     qint64 duration = 0;
-
-    // Note reg std::multiset : https://stackoverflow.com/questions/5895792/why-is-using-a-stdmultiset-as-a-priority-queue-faster-than-using-a-stdpriori
-    std::priority_queue<AstarTile> priority_queue;
 
     QPoint start_idx = m_map->getStartIdx();
 
     m_weight_map[start_idx.x()][start_idx.y()].setCost(0);
     m_weight_map[start_idx.x()][start_idx.y()].setTargetCost(getEstimatedTargetCost(start_idx));
 
-    priority_queue.push(m_weight_map[start_idx.x()][start_idx.y()]);
+    m_priority_queue.push(m_weight_map[start_idx.x()][start_idx.y()]);
 
-    while (!priority_queue.empty())
+    while (!m_priority_queue.empty())
     {
-        AstarTile current_tile = priority_queue.top();
+        const AstarTile &current_tile = m_priority_queue.top();
 
         TileType tile_type = m_map->getTileType(current_tile.getIdx());
 
@@ -60,12 +55,9 @@ void Astar::find()
             return;
         }
 
-        processAdjacentTiles(current_tile.getIdx(), [this, &priority_queue, &current_tile](int x, int y)
-                             {
-                                 // Lambda implementation
-                                 addAstarTile(x, y, priority_queue, current_tile); });
+        processAdjacentTiles(current_tile.getIdx());
 
-        priority_queue.pop();
+        m_priority_queue.pop();
 
         duration += m_timer.nsecsElapsed() / 1000;
         m_map->update();
@@ -87,12 +79,12 @@ void Astar::reinitWeightMap()
     }
 }
 
-qreal Astar::getEstimatedTargetCost(QPoint idx)
+qreal Astar::getEstimatedTargetCost(const QPoint &idx)
 {
-    return getEstimatedTargetCost(idx.rx(), idx.ry());
+    return getEstimatedTargetCost(idx.x(), idx.y());
 }
 
-qreal Astar::getEstimatedTargetCost(int &idx_x, int &idx_y)
+qreal Astar::getEstimatedTargetCost(const int &idx_x, const int &idx_y)
 {
     QPoint target_idx = m_map->getTargetIdx();
 
@@ -100,37 +92,52 @@ qreal Astar::getEstimatedTargetCost(int &idx_x, int &idx_y)
     return sqrt(pow(target_idx.rx() - idx_x, 2) + pow(target_idx.ry() - idx_y, 2));
 }
 
-void Astar::addAstarTile(int idx_x, int idx_y, std::priority_queue<AstarTile> &priority_queue, AstarTile &current_tile)
+void Astar::reinit()
 {
-    if (0 <= idx_x && idx_x < m_map->getNbColumns() && 0 <= idx_y && idx_y < m_map->getNbRows())
+    reinitWeightMap();
+
+    m_timer.restart();
+
+    while (!m_priority_queue.empty())
     {
-        TileType tile_type = m_map->getTileType(idx_x, idx_y);
+        m_priority_queue.pop();
+    }
+}
+
+void Astar::processTile(const int &tile_idx_x, const int &tile_idx_y)
+{
+    if (0 <= tile_idx_x && tile_idx_x < m_map->getNbColumns() && 0 <= tile_idx_y && tile_idx_y < m_map->getNbRows())
+    {
+        TileType tile_type = m_map->getTileType(tile_idx_x, tile_idx_y);
         if (tile_type == TileType::Empty || tile_type == TileType::Target)
         {
-            int &current_x = current_tile.getIdx().rx();
-            int &current_y = current_tile.getIdx().ry();
+            const AstarTile &current_tile = m_priority_queue.top();
 
-            qreal cost = sqrt(pow(current_x - idx_x, 2) + pow(current_y - idx_y, 2)) + current_tile.getWeight();
+            const QPoint &current_tile_idx = current_tile.getIdx();
+            int current_x = current_tile_idx.x();
+            int current_y = current_tile_idx.y();
+
+            qreal cost = sqrt(pow(current_x - tile_idx_x, 2) + pow(current_y - tile_idx_y, 2)) + current_tile.getWeight();
 
             //            qDebug()<<cost;
 
-            if (m_weight_map[idx_x][idx_y].getCost() > cost)
+            if (m_weight_map[tile_idx_x][tile_idx_y].getCost() > cost)
             {
-                m_weight_map[idx_x][idx_y].setCost(cost);
+                m_weight_map[tile_idx_x][tile_idx_y].setCost(cost);
             }
 
-            m_weight_map[idx_x][idx_y].setTargetCost(getEstimatedTargetCost(idx_x, idx_y));
+            m_weight_map[tile_idx_x][tile_idx_y].setTargetCost(getEstimatedTargetCost(tile_idx_x, tile_idx_y));
 
             QVector<QPoint> parents = current_tile.getParents();
             parents.append(QPoint(current_x, current_y));
 
-            m_weight_map[idx_x][idx_y].setParent(parents);
+            m_weight_map[tile_idx_x][tile_idx_y].setParent(parents);
 
-            priority_queue.push(m_weight_map[idx_x][idx_y]);
+            m_priority_queue.push(m_weight_map[tile_idx_x][tile_idx_y]);
 
             if (tile_type != TileType::Target)
             {
-                m_map->setTileType(idx_x, idx_y, TileType::Visited);
+                m_map->setTileType(tile_idx_x, tile_idx_y, TileType::Visited);
             }
         }
     }

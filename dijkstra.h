@@ -14,11 +14,11 @@ private:
 public:
     DijkstraTile(qreal weight = 0, QPoint idx = QPoint(0, 0), QVector<QPoint> parents = QVector<QPoint>()) : m_weight(weight), m_idx(idx), m_parents(parents){};
 
-    QPoint &getIdx()
+    const QPoint &getIdx() const
     {
         return m_idx;
     }
-    qreal getWeight()
+    qreal getWeight() const
     {
         return m_weight;
     }
@@ -28,7 +28,7 @@ public:
         m_weight = new_weight;
     }
 
-    QVector<QPoint> getParents()
+    const QVector<QPoint> &getParents() const
     {
         return m_parents;
     }
@@ -62,9 +62,13 @@ private:
     const qreal MAX_WEIGHT_VALUE = 99999;
     QVector<QVector<DijkstraTile>> m_weight_map;
 
+    // Note reg std::multiset : https://stackoverflow.com/questions/5895792/why-is-using-a-stdmultiset-as-a-priority-queue-faster-than-using-a-stdpriori
+    std::priority_queue<DijkstraTile> m_priority_queue;
+
     void reinitWeightMap();
 
-    void addDijkstraTile(int idx_x, int idx_y, std::priority_queue<DijkstraTile> &priority_queue, DijkstraTile &current_tile);
+    void reinit();
+    void processTile(const int &tile_idx_x, const int &tile_idx_y);
 };
 
 #endif // DIJKSTRA_H

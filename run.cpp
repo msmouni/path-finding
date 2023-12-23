@@ -11,7 +11,7 @@ PathFindingRunner::PathFindingRunner(Map *map)
 
 void PathFindingRunner::run()
 {
-    // m_bfs->find();
+    //     m_bfs->find();
     //    m_dijstra->find();
     m_a_star->find();
 }
