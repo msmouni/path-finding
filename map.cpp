@@ -313,7 +313,7 @@ void Map::tileClicked(QPoint tile_indexes)
 
 void Map::tryToFindPath()
 {
-    if (m_target_set && m_start_set)
+    if (isReady())
     {
         emit findPath();
     }
@@ -327,12 +327,18 @@ void Map::clearVisited()
     {
         for (Tile *tile : tile_column)
         {
-            if (tile->getType() == TileType::Visited || tile->getType() == TileType::Path)
+            TileType tile_type=tile->getType();
+            if ( tile_type== TileType::Visited || tile_type == TileType::Path || tile_type == TileType::Current)
             {
                 tile->setType(TileType::Empty);
             }
         }
     }
+}
+
+bool Map::isReady()
+{
+    return m_target_set && m_start_set;
 }
 
 void Map::setNbRows(int nb_rows)

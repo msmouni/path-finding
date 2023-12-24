@@ -12,60 +12,75 @@ void Bfs::init()
     reset();
 }
 
-
 void Bfs::find()
 {
     //    qDebug() << "Running Bfs in Thread:" << QThread::currentThreadId();
 
-    reset();
-
-    qint64 duration = 0;
-
-    QVector<QPoint> start;
-    start.append(m_map->getStartIdx());
-
-    m_queue.enqueue(start);
-
-    bool found_path = false;
-
-    while (!m_queue.isEmpty())
+    if (m_map->isReady())
     {
-        m_current_parents = m_queue.dequeue();
-        QPoint &current_cell = m_current_parents.last();
+        reset();
 
-        TileType tile_type = m_map->getTileType(current_cell);
+        qint64 duration = 0;
 
-        if (tile_type == TileType::Target)
+        QVector<QPoint> start;
+        start.append(m_map->getStartIdx());
+
+        m_queue.enqueue(start);
+
+        bool found_path = false;
+
+        while (!m_queue.isEmpty())
         {
-            //            qDebug()<<current_parents;
-            qDebug() << "elapsed time" << duration << " us";
-            for (QPoint tile_pos : m_current_parents)
+            m_current_parents = m_queue.dequeue();
+            QPoint &current_tile = m_current_parents.last();
+
+            TileType tile_type = m_map->getTileType(current_tile);
+
+            if (tile_type == TileType::Target)
             {
-                TileType tile_type = m_map->getTileType(tile_pos);
-                if (tile_type != TileType::Target && tile_type != TileType::Start)
+                //            qDebug()<<current_parents;
+                qDebug() << "elapsed time" << duration << " us";
+                for (QPoint tile_pos : m_current_parents)
                 {
-                    m_map->setTileType(tile_pos.x(), tile_pos.y(), TileType::Path);
+                    TileType tile_type = m_map->getTileType(tile_pos);
+                    if (tile_type != TileType::Target && tile_type != TileType::Start)
+                    {
+                        m_map->setTileType(tile_pos, TileType::Path);
 
-                    QThread::msleep(m_visual_delay_ms);
+                        QThread::msleep(m_visual_delay_ms);
 
-                    m_map->update();
+                        m_map->update();
+                    }
                 }
+
+                return;
+            }
+            else
+            {
+                // Not part of the algorithm, just for visualization
+                duration += m_timer.nsecsElapsed() / 1000;
+                m_map->setTileType(current_tile, TileType::Current);
+
+                m_timer.restart();
             }
 
-            return;
+            processAdjacentTiles(current_tile);
+
+            duration += m_timer.nsecsElapsed() / 1000;
+
+            m_map->update();
+
+            QThread::msleep(m_visual_delay_ms);
+
+            if (tile_type != TileType::Target)
+            {
+                m_map->setTileType(current_tile, tile_type);
+            }
+
+            m_timer.restart();
         }
-
-        processAdjacentTiles(current_cell);
-
-        duration += m_timer.nsecsElapsed() / 1000;
-        m_map->update();
-
-        QThread::msleep(m_visual_delay_ms);
-
-        m_timer.restart();
     }
 }
-
 
 void Bfs::reset()
 {

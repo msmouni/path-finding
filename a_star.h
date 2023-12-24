@@ -77,6 +77,7 @@ private:
 
     // Note reg std::multiset : https://stackoverflow.com/questions/5895792/why-is-using-a-stdmultiset-as-a-priority-queue-faster-than-using-a-stdpriori
     std::priority_queue<AstarTile> m_priority_queue;
+    AstarTile m_current_tile;
 
     void reinitWeightMap();
 

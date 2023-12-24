@@ -24,6 +24,7 @@ public:
     int getNbRows();
     int getNbColumns();
     void clearVisited();
+    bool isReady();
 
 public slots:
     void setNbRows(int nb_rows);

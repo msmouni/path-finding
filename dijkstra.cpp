@@ -28,51 +28,66 @@ void Dijkstra::init()
 
 void Dijkstra::find()
 {
-    reset();
+    if (m_map->isReady()){
+        reset();
 
-    qint64 duration = 0;
+        qint64 duration = 0;
 
-    QPoint start_idx = m_map->getStartIdx();
-    m_weight_map[start_idx.x()][start_idx.y()].setWeight(0);
+        QPoint start_idx = m_map->getStartIdx();
+        m_weight_map[start_idx.x()][start_idx.y()].setWeight(0);
 
-    m_priority_queue.push(m_weight_map[start_idx.x()][start_idx.y()]);
+        m_priority_queue.push(m_weight_map[start_idx.x()][start_idx.y()]);
 
-    while (!m_priority_queue.empty())
-    {
-        const DijkstraTile &current_tile = m_priority_queue.top();
-
-        TileType tile_type = m_map->getTileType(current_tile.getIdx());
-
-        if (tile_type == TileType::Target)
+        while (!m_priority_queue.empty())
         {
-            //            qDebug()<<current_parents;
-            qDebug() << "elapsed time" << duration << " us";
-            for (QPoint tile_pos : current_tile.getParents())
+            m_current_tile = m_priority_queue.top();
+
+            m_priority_queue.pop();
+
+            TileType tile_type = m_map->getTileType(m_current_tile.getIdx());
+
+            if (tile_type == TileType::Target)
             {
-                TileType tile_type = m_map->getTileType(tile_pos);
-                if (tile_type != TileType::Target && tile_type != TileType::Start)
+                //            qDebug()<<current_parents;
+                qDebug() << "elapsed time" << duration << " us";
+                for (QPoint tile_pos : m_current_tile.getParents())
                 {
-                    m_map->setTileType(tile_pos.x(), tile_pos.y(), TileType::Path);
+                    TileType tile_type = m_map->getTileType(tile_pos);
+                    if (tile_type != TileType::Target && tile_type != TileType::Start)
+                    {
+                        m_map->setTileType(tile_pos.x(), tile_pos.y(), TileType::Path);
 
-                    QThread::msleep(m_visual_delay_ms);
+                        QThread::msleep(m_visual_delay_ms);
 
-                    m_map->update();
+                        m_map->update();
+                    }
                 }
+
+                return;
+            }else
+            {
+                // Not part of the algorithm, just for visualization
+                duration += m_timer.nsecsElapsed() / 1000;
+                m_map->setTileType(m_current_tile.getIdx(), TileType::Current);
+
+                m_timer.restart();
             }
 
-            return;
+            processAdjacentTiles(m_current_tile.getIdx()); // new elements are pushed to the priority_queue, so references obtained by m_priority_queue.top() will be invalid
+
+            duration += m_timer.nsecsElapsed() / 1000;
+            m_map->update();
+
+            QThread::msleep(m_visual_delay_ms);
+
+            if (tile_type != TileType::Target)
+            {
+                m_map->setTileType(m_current_tile.getIdx(), tile_type);
+            }
+
+            m_timer.restart();
+
         }
-
-        processAdjacentTiles(current_tile.getIdx());
-
-        m_priority_queue.pop();
-
-        duration += m_timer.nsecsElapsed() / 1000;
-        m_map->update();
-
-        QThread::msleep(m_visual_delay_ms);
-
-        m_timer.restart();
     }
 }
 
@@ -111,13 +126,11 @@ void Dijkstra::processTile(const int &tile_idx_x, const int &tile_idx_y)
         TileType tile_type = m_map->getTileType(tile_idx_x, tile_idx_y);
         if (tile_type == TileType::Empty || tile_type == TileType::Target)
         {
-            const DijkstraTile &current_tile = m_priority_queue.top();
-
-            const QPoint &current_tile_idx = current_tile.getIdx();
+            const QPoint &current_tile_idx = m_current_tile.getIdx();
             int current_x = current_tile_idx.x();
             int current_y = current_tile_idx.y();
 
-            qreal weight = sqrt(pow(current_x - tile_idx_x, 2) + pow(current_y - tile_idx_y, 2)) + current_tile.getWeight();
+            qreal weight = sqrt(pow(current_x - tile_idx_x, 2) + pow(current_y - tile_idx_y, 2)) + m_current_tile.getWeight();
 
             //            qDebug()<<weight;
 
@@ -126,11 +139,16 @@ void Dijkstra::processTile(const int &tile_idx_x, const int &tile_idx_y)
                 m_weight_map[tile_idx_x][tile_idx_y].setWeight(weight);
             }
 
-            QVector<QPoint> parents = current_tile.getParents();
+            QVector<QPoint> parents = m_current_tile.getParents();
             parents.append(QPoint(current_x, current_y));
 
             m_weight_map[tile_idx_x][tile_idx_y].setParent(parents);
 
+            /*
+             NOTE: When a new element is pushed into the priority queue,
+                   it may lead to reallocation and invalidation of references or pointers to elements in the container,
+                   including the references obtained from the previous calls of top().
+             */
             m_priority_queue.push(m_weight_map[tile_idx_x][tile_idx_y]);
 
             if (tile_type != TileType::Target)
