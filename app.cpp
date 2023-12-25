@@ -12,6 +12,7 @@ App::App(QWidget *parent)
         ui->selectAlgo->addItem(getAlgoName(i));
     }
 
+//    ui->logText->set
 
     ui->nb_rows->setValue(m_map->getNbRows());
     ui->nb_col->setValue(m_map->getNbColumns());
@@ -21,12 +22,14 @@ App::App(QWidget *parent)
 
     connect(ui->delaySlider, SIGNAL(valueChanged(int)), this, SLOT(setVisualizationDelay(int)));
 
-    m_path_finding = new PathFindingRunner(m_map);
-    connect(m_map, SIGNAL(updated()), m_path_finding, SLOT(reinit()));
-    connect(ui->selectAlgo, SIGNAL(activated(int)), m_path_finding, SLOT(setAlgo(int)));
+    m_path_finder = new PathFindingRunner(m_map);
+    connect(m_map, SIGNAL(updated()), this, SLOT(reset()));
+    connect(ui->selectAlgo, SIGNAL(activated(int)), m_path_finder, SLOT(setAlgo(int)));
 
-    connect(m_map, SIGNAL(stopPathFinding()), m_path_finding, SLOT(terminate()));
-    connect(m_map, SIGNAL(findPath()), m_path_finding, SLOT(restart()));
+    connect(m_map, SIGNAL(stopPathFinding()), m_path_finder, SLOT(terminate()));
+    connect(m_map, SIGNAL(findPath()), m_path_finder, SLOT(restart()));
+
+    connect(m_path_finder, SIGNAL(pathFindingRes(RunResult)), this , SLOT(setPathFindingResult(RunResult)));
 }
 
 App::~App()
@@ -37,5 +40,29 @@ App::~App()
 void App::setVisualizationDelay(int val)
 {
     ui->delay->setText(QString::number(val));
-    m_path_finding->setVisualDelayMs(val);
+    m_path_finder->setVisualDelayMs(val);
+}
+
+void App::setPathFindingResult(RunResult res)
+{
+    m_path_finding_res.insert(res.m_algo, res.m_path_finding);
+
+    // TODO: Move to a function
+    QString log_txt;
+    for (int i=1; i<=NB_ALGOS; i++){
+        log_txt +=getAlgoName(i) +":\n"+ m_path_finding_res.value(getAlgoFromInt(i)).toText() + "\n\n";
+    }
+
+    setLogText(log_txt);
+}
+
+void App::reset()
+{
+    m_path_finding_res.clear();
+    m_path_finder->reinit();
+}
+
+void App::setLogText(QString txt)
+{
+    ui->logText->setText(txt);
 }

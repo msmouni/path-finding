@@ -25,12 +25,13 @@ void Astar::init()
     reset();
 }
 
-void Astar::find()
+PathFindingResult Astar::find()
 {
+    qint64 duration = 0;
+    int total_checks = 0;
+
     if (m_map->isReady()){
         reset();
-
-        qint64 duration = 0;
 
         QPoint start_idx = m_map->getStartIdx();
 
@@ -41,6 +42,8 @@ void Astar::find()
 
         while (!m_priority_queue.empty())
         {
+            total_checks+=1;
+
             m_current_tile = m_priority_queue.top();
 
             m_priority_queue.pop();
@@ -64,7 +67,10 @@ void Astar::find()
                     }
                 }
 
-                return;
+                QVector<QPoint> path=m_current_tile.getParents();
+                path.append(m_current_tile.getIdx());
+
+                return PathFindingResult(true, total_checks, duration, path);
             }else {
                 // Not part of the algorithm, just for visualization
                 duration += m_timer.nsecsElapsed() / 1000;
@@ -86,9 +92,10 @@ void Astar::find()
             }
 
             m_timer.restart();
-
         }
     }
+
+    return PathFindingResult(false, total_checks, duration, QVector<QPoint>());
 }
 
 
@@ -122,12 +129,12 @@ void Astar::reset()
     m_map->clearVisited();
     reinitWeightMap();
 
-    m_timer.restart();
-
     while (!m_priority_queue.empty())
     {
         m_priority_queue.pop();
     }
+
+    m_timer.restart();
 }
 
 void Astar::processTile(const int &tile_idx_x, const int &tile_idx_y)

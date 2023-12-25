@@ -13,15 +13,18 @@ void PathFindingRunner::run()
 {
     switch (m_selected_algo){
         case PathFindingAlgos::Bfs :{
-            m_bfs->find();
+            PathFindingResult res=m_bfs->find();
+            emit pathFindingRes(RunResult(PathFindingAlgos::Bfs, res));
             break;
         }
         case PathFindingAlgos::Dijkstra :{
-            m_dijstra->find();
+            PathFindingResult res=m_dijstra->find();
+            emit pathFindingRes(RunResult(PathFindingAlgos::Dijkstra, res));
             break;
         }
         case PathFindingAlgos::Astar :{
-            m_a_star->find();
+            PathFindingResult res=m_a_star->find();
+            emit pathFindingRes(RunResult(PathFindingAlgos::Astar, res));
             break;
         }
         default:

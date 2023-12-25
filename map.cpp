@@ -116,6 +116,7 @@ void Map::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 void Map::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
+    emit updated();
     tryToFindPath();
     m_mouse_boutton = Qt::MouseButton::NoButton;
     m_mouse_button_clicked = false;
@@ -214,15 +215,17 @@ void Map::init()
 
     QMutexLocker ml(&m_mutex);
 
-    m_mouse_boutton=Qt::MouseButton::NoButton;
-    m_mouse_button_clicked=false;
-    m_s_key_pressed=false;
-    m_t_key_pressed=false;
-    m_start_set=false;
-    m_target_set=false;
+    m_mouse_boutton = Qt::MouseButton::NoButton;
+    m_mouse_button_clicked = false;
+    m_s_key_pressed = false;
+    m_t_key_pressed = false;
+    m_start_set = false;
+    m_target_set = false;
 
-    for (QVector<Tile*> &item_vec:m_tiles){
-        for (Tile* item:item_vec){
+    for (QVector<Tile *> &item_vec : m_tiles)
+    {
+        for (Tile *item : item_vec)
+        {
             /*
              * NOTE: removeFromGroup() Removes the specified item from this group. The item will be reparented to this group's parent item, or to 0 if this group has no parent.
              * Its position and transformation relative to the scene will stay intact.
@@ -327,8 +330,8 @@ void Map::clearVisited()
     {
         for (Tile *tile : tile_column)
         {
-            TileType tile_type=tile->getType();
-            if ( tile_type== TileType::Visited || tile_type == TileType::Path || tile_type == TileType::Current)
+            TileType tile_type = tile->getType();
+            if (tile_type == TileType::Visited || tile_type == TileType::Path || tile_type == TileType::Current)
             {
                 tile->setType(TileType::Empty);
             }
@@ -344,7 +347,7 @@ bool Map::isReady()
 void Map::setNbRows(int nb_rows)
 {
     QMutexLocker ml(&m_mutex);
-    m_nb_rows=nb_rows;
+    m_nb_rows = nb_rows;
     ml.unlock();
 
     init();
@@ -355,7 +358,7 @@ void Map::setNbRows(int nb_rows)
 void Map::setNbColumns(int nb_columns)
 {
     QMutexLocker ml(&m_mutex);
-    m_nb_columns=nb_columns;
+    m_nb_columns = nb_columns;
     ml.unlock();
 
     init();
