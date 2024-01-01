@@ -331,7 +331,7 @@ void Map::clearVisited()
         for (Tile *tile : tile_column)
         {
             TileType tile_type = tile->getType();
-            if (tile_type == TileType::Visited || tile_type == TileType::Path || tile_type == TileType::Current)
+            if (tile_type == TileType::Visited || tile_type == TileType::VisitedUpWay|| tile_type == TileType::VisitedDownWay|| tile_type == TileType::Path || tile_type == TileType::Current)
             {
                 tile->setType(TileType::Empty);
             }
