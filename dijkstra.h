@@ -70,7 +70,7 @@ private:
     void reinitWeightMap();
 
     void reset();
-    void processTile(const int &tile_idx_x, const int &tile_idx_y);
+    void processTile(const int &tile_idx_x, const int &tile_idx_y, MvmtDirection mvmt_dir);
 };
 
 #endif // DIJKSTRA_H

@@ -20,29 +20,38 @@ void PathFinding::processAdjacentTiles(const QPoint &tile_idx)
     int tile_x = tile_idx.x();
     int tile_y = tile_idx.y();
 
-    processTile(tile_x - 1, tile_y);
-    processTile(tile_x + 1, tile_y);
-    processTile(tile_x, tile_y - 1);
-    processTile(tile_x, tile_y + 1);
-
-    // Note: since we are using a queue the order of insertion matters (First being inserted, first to be checked), so we prioritize horizantal and vertical mvmt over diagonal ones
     int map_rows_nb = m_map->getNbRows();
     int map_columns_nb = m_map->getNbColumns();
 
+    if (tile_y < map_rows_nb - 1 && tile_x > 0 && m_map->getTileType(tile_x - 1, tile_y + 1) == TileType::Solid)
+    {
+        processTile(tile_x - 1, tile_y, MvmtDirection::Left);
+    }
+    if (tile_y < map_rows_nb - 1 && tile_x < map_columns_nb - 1 && m_map->getTileType(tile_x + 1, tile_y + 1) == TileType::Solid)
+    {
+        processTile(tile_x + 1, tile_y, MvmtDirection::Right);
+    }
+    processTile(tile_x, tile_y - 1, MvmtDirection::Top);
+    processTile(tile_x, tile_y + 1, MvmtDirection::Bottom);
+
+    // Note: since we are using a queue the order of insertion matters (First being inserted, first to be checked), so we prioritize horizantal and vertical mvmt over diagonal ones
+    //    int map_rows_nb = m_map->getNbRows();
+    //    int map_columns_nb = m_map->getNbColumns();
+
     if (tile_x > 0 && m_map->getTileType(tile_x - 1, tile_y) != TileType::Solid && tile_y > 0 && m_map->getTileType(tile_x, tile_y - 1) != TileType::Solid)
     {
-        processTile(tile_x - 1, tile_y - 1);
+        processTile(tile_x - 1, tile_y - 1, MvmtDirection::TopLeft);
     }
     if (tile_x > 0 && m_map->getTileType(tile_x - 1, tile_y) != TileType::Solid && tile_y < map_rows_nb - 1 && m_map->getTileType(tile_x, tile_y + 1) != TileType::Solid)
     {
-        processTile(tile_x - 1, tile_y + 1);
+        processTile(tile_x - 1, tile_y + 1, MvmtDirection::BottomLeft);
     }
     if (tile_x < map_columns_nb - 1 && m_map->getTileType(tile_x + 1, tile_y) != TileType::Solid && tile_y > 0 && m_map->getTileType(tile_x, tile_y - 1) != TileType::Solid)
     {
-        processTile(tile_x + 1, tile_y - 1);
+        processTile(tile_x + 1, tile_y - 1, MvmtDirection::TopRight);
     }
     if (tile_x < map_columns_nb - 1 && m_map->getTileType(tile_x + 1, tile_y) != TileType::Solid && tile_y < map_rows_nb - 1 && m_map->getTileType(tile_x, tile_y + 1) != TileType::Solid)
     {
-        processTile(tile_x + 1, tile_y + 1);
+        processTile(tile_x + 1, tile_y + 1, MvmtDirection::BottomRight);
     }
 }

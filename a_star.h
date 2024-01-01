@@ -85,7 +85,7 @@ private:
     qreal getEstimatedTargetCost(const int &idx_x, const int &idx_y);
 
     void reset();
-    void processTile(const int &tile_idx_x, const int &tile_idx_y);
+    void processTile(const int &tile_idx_x, const int &tile_idx_y, MvmtDirection mvmt_dir);
 };
 
 #endif // ASTAR_H
