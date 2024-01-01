@@ -54,6 +54,7 @@ void App::reset()
 {
     m_path_finding_res.clear();
     m_path_finder->reinit();
+    setLogText(getPathFindingLog());
 }
 
 void App::setLogText(QString txt)
