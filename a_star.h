@@ -49,7 +49,7 @@ public:
         m_parents = new_parents;
     }
 
-    void reinit(qreal new_cost, qreal new_target_cost)
+    void reset(qreal new_cost, qreal new_target_cost)
     {
         m_cost = new_cost;
         m_estimated_target_cost = new_target_cost;
@@ -68,7 +68,8 @@ class Astar : public PathFinding
 public:
     explicit Astar(QObject *parent = nullptr, Map *map = nullptr);
 
-    void find();
+    void init();
+    PathFindingResult find();
 
 private:
     const qreal MAX_WEIGHT_VALUE = 99999;
@@ -76,13 +77,14 @@ private:
 
     // Note reg std::multiset : https://stackoverflow.com/questions/5895792/why-is-using-a-stdmultiset-as-a-priority-queue-faster-than-using-a-stdpriori
     std::priority_queue<AstarTile> m_priority_queue;
+    AstarTile m_current_tile;
 
     void reinitWeightMap();
 
     qreal getEstimatedTargetCost(const QPoint &idx);
     qreal getEstimatedTargetCost(const int &idx_x, const int &idx_y);
 
-    void reinit();
+    void reset();
     void processTile(const int &tile_idx_x, const int &tile_idx_y);
 };
 

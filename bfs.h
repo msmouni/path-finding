@@ -9,13 +9,14 @@ class Bfs : public PathFinding
 public:
     explicit Bfs(QObject *parent = nullptr, Map *map = nullptr);
 
-    void find();
+    void init();
+    PathFindingResult find();
 
 private:
     QQueue<QVector<QPoint>> m_queue;
     QVector<QPoint> m_current_parents;
 
-    void reinit();
+    void reset();
     void processTile(const int &tile_idx_x, const int &tile_idx_y);
 };
 
