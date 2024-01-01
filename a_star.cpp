@@ -69,7 +69,23 @@ void Astar::find()
                 QVector<QPoint> path = m_current_tile.getParents();
                 path.append(m_current_tile.getIdx());
 
-                return;
+            }
+            else
+            {
+                // Not part of the algorithm, just for visualization
+                duration += m_timer.nsecsElapsed() / 1000;
+                m_map->setTileType(m_current_tile.getIdx(), TileType::Current);
+
+                // TMP
+                for (QPoint parent : m_current_tile.getParents())
+                {
+                    if (m_map->getTileType(parent) != TileType::Start)
+                    {
+                        m_map->setTileType(parent, TileType::Current);
+                    }
+                }
+
+                m_timer.restart();
             }
 
             processAdjacentTiles(m_current_tile.getIdx()); // new elements are pushed to the priority_queue, so references obtained by m_priority_queue.top() will be invalid
@@ -78,6 +94,20 @@ void Astar::find()
             m_map->update();
 
             QThread::msleep(m_visual_delay_ms);
+
+            if (tile_type != TileType::Target)
+            {
+                m_map->setTileType(m_current_tile.getIdx(), tile_type);
+
+                // TMP
+                for (QPoint parent : m_current_tile.getParents())
+                {
+                    if (m_map->getTileType(parent) != TileType::Start)
+                    {
+                        m_map->setTileType(parent, TileType::Visited);
+                    }
+                }
+            }
 
             m_timer.restart();
         }
