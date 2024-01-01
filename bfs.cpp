@@ -62,7 +62,10 @@ PathFindingResult Bfs::find()
             {
                 // Not part of the algorithm, just for visualization
                 duration += m_timer.nsecsElapsed() / 1000;
-                m_map->setTileType(current_tile, TileType::Current);
+                if (tile_type != TileType::Start)
+                {
+                    m_map->setTileType(current_tile, TileType::Current);
+                }
 
                 // TMP
                 for (QPoint parent : m_current_parents)

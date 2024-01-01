@@ -42,7 +42,6 @@ PathFindingResult Dijkstra::find()
 
         while (!m_priority_queue.empty())
         {
-            total_checks += 1;
 
             m_current_tile = m_priority_queue.top();
 
@@ -50,56 +49,65 @@ PathFindingResult Dijkstra::find()
 
             TileType tile_type = m_map->getTileType(m_current_tile.getIdx());
 
-            if (tile_type == TileType::Target)
+            // Note: When adding a Tile with lower cost to the priority_queue, the old Tile with greater cost remains in the priority_queue
+            if (tile_type != TileType::Visited)
             {
-                //            qDebug()<<current_parents;
-                qDebug() << "Weight<" << m_current_tile.getWeight();
-                qDebug() << "elapsed time" << duration << " us";
-                for (QPoint tile_pos : m_current_tile.getParents())
+                total_checks += 1;
+
+                if (tile_type == TileType::Target)
                 {
-                    TileType tile_type = m_map->getTileType(tile_pos);
-                    if (tile_type != TileType::Target && tile_type != TileType::Start)
+                    //            qDebug()<<current_parents;
+                    qDebug() << "Weight<" << m_current_tile.getWeight();
+                    qDebug() << "elapsed time" << duration << " us";
+                    for (QPoint tile_pos : m_current_tile.getParents())
                     {
-                        m_map->setTileType(tile_pos.x(), tile_pos.y(), TileType::Path);
+                        TileType tile_type = m_map->getTileType(tile_pos);
+                        if (tile_type != TileType::Target && tile_type != TileType::Start)
+                        {
+                            m_map->setTileType(tile_pos.x(), tile_pos.y(), TileType::Path);
 
-                        QThread::msleep(m_visual_delay_ms);
+                            QThread::msleep(m_visual_delay_ms);
 
-                        m_map->update();
+                            m_map->update();
+                        }
                     }
+
+                    QVector<QPoint> path = m_current_tile.getParents();
+                    path.append(m_current_tile.getIdx());
+
+                    return PathFindingResult(true, total_checks, duration, path);
+                }
+                else
+                {
+                    // Not part of the algorithm, just for visualization
+                    duration += m_timer.nsecsElapsed() / 1000;
+                    if (tile_type != TileType::Start)
+                    {
+                        m_map->setTileType(m_current_tile.getIdx(), TileType::Current);
+                    }
+                    // TMP
+                    for (QPoint parent : m_current_tile.getParents())
+                    {
+                        if (m_map->getTileType(parent) != TileType::Start)
+                        {
+                            m_map->setTileType(parent, TileType::Current);
+                        }
+                    }
+
+                    m_timer.restart();
                 }
 
-                QVector<QPoint> path = m_current_tile.getParents();
-                path.append(m_current_tile.getIdx());
+                processAdjacentTiles(m_current_tile.getIdx()); // new elements are pushed to the priority_queue, so references obtained by m_priority_queue.top() will be invalid
 
-                return PathFindingResult(true, total_checks, duration, path);
-            }
-            else
-            {
-                // Not part of the algorithm, just for visualization
                 duration += m_timer.nsecsElapsed() / 1000;
-                m_map->setTileType(m_current_tile.getIdx(), TileType::Current);
-                // TMP
-                for (QPoint parent : m_current_tile.getParents())
+                m_map->update();
+
+                QThread::msleep(m_visual_delay_ms);
+
+                if (tile_type != TileType::Start)
                 {
-                    if (m_map->getTileType(parent) != TileType::Start)
-                    {
-                        m_map->setTileType(parent, TileType::Current);
-                    }
+                    m_map->setTileType(m_current_tile.getIdx(), TileType::Visited);
                 }
-
-                m_timer.restart();
-            }
-
-            processAdjacentTiles(m_current_tile.getIdx()); // new elements are pushed to the priority_queue, so references obtained by m_priority_queue.top() will be invalid
-
-            duration += m_timer.nsecsElapsed() / 1000;
-            m_map->update();
-
-            QThread::msleep(m_visual_delay_ms);
-
-            if (tile_type != TileType::Target)
-            {
-                m_map->setTileType(m_current_tile.getIdx(), tile_type);
                 // TMP
                 for (QPoint parent : m_current_tile.getParents())
                 {
@@ -108,9 +116,9 @@ PathFindingResult Dijkstra::find()
                         m_map->setTileType(parent, TileType::Visited);
                     }
                 }
-            }
 
-            m_timer.restart();
+                m_timer.restart();
+            }
         }
     }
 
@@ -156,28 +164,20 @@ void Dijkstra::processTile(const int &tile_idx_x, const int &tile_idx_y)
 
             qreal weight = sqrt(pow(current_x - tile_idx_x, 2) + pow(current_y - tile_idx_y, 2)) + m_current_tile.getWeight();
 
-            //            qDebug()<<weight;
-
             if (m_weight_map[tile_idx_x][tile_idx_y].getWeight() > weight)
             {
                 m_weight_map[tile_idx_x][tile_idx_y].setWeight(weight);
-            }
+                QVector<QPoint> parents = m_current_tile.getParents();
+                parents.append(QPoint(current_x, current_y));
 
-            QVector<QPoint> parents = m_current_tile.getParents();
-            parents.append(QPoint(current_x, current_y));
+                m_weight_map[tile_idx_x][tile_idx_y].setParent(parents);
 
-            m_weight_map[tile_idx_x][tile_idx_y].setParent(parents);
-
-            /*
-             NOTE: When a new element is pushed into the priority queue,
-                   it may lead to reallocation and invalidation of references or pointers to elements in the container,
-                   including the references obtained from the previous calls of top().
-             */
-            m_priority_queue.push(m_weight_map[tile_idx_x][tile_idx_y]);
-
-            if (tile_type != TileType::Target)
-            {
-                m_map->setTileType(tile_idx_x, tile_idx_y, TileType::Visited);
+                /*
+                NOTE: When a new element is pushed into the priority queue,
+                    it may lead to reallocation and invalidation of references or pointers to elements in the container,
+                    including the references obtained from the previous calls of top().
+                */
+                m_priority_queue.push(m_weight_map[tile_idx_x][tile_idx_y]);
             }
         }
     }
