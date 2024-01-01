@@ -7,6 +7,14 @@
 #include "dijkstra.h"
 #include "a_star.h"
 
+struct RunResult
+{
+    PathFindingAlgos m_algo;
+    PathFindingResult m_path_finding;
+
+    RunResult(PathFindingAlgos algo = PathFindingAlgos::None, PathFindingResult path_finding = {0}) : m_algo(algo), m_path_finding(path_finding){};
+};
+
 class PathFindingRunner : public QThread
 {
     Q_OBJECT
@@ -23,6 +31,9 @@ public slots:
 protected slots:
     void restart();
     void setAlgo(int algo_int);
+
+signals:
+    void pathFindingRes(RunResult);
 
 private:
     PathFindingAlgos m_selected_algo;

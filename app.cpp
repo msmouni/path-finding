@@ -29,6 +29,7 @@ App::App(QWidget *parent)
     connect(ui->selectAlgo, SIGNAL(activated(int)), m_path_finder, SLOT(setAlgo(int)));
     connect(m_map, SIGNAL(stopPathFinding()), m_path_finder, SLOT(terminate()));
     connect(m_map, SIGNAL(findPath()), m_path_finder, SLOT(restart()));
+    connect(m_path_finder, SIGNAL(pathFindingRes(RunResult)), this, SLOT(setPathFindingResult(RunResult)));
 }
 
 App::~App()
@@ -42,6 +43,13 @@ void App::setVisualizationDelay(int val)
     m_path_finder->setVisualDelayMs(val);
 }
 
+void App::setPathFindingResult(RunResult res)
+{
+    m_path_finding_res.insert(res.m_algo, res.m_path_finding);
+
+    setLogText(getPathFindingLog());
+}
+
 void App::reset()
 {
     m_path_finding_res.clear();
@@ -51,4 +59,15 @@ void App::reset()
 void App::setLogText(QString txt)
 {
     ui->logText->setText(txt);
+}
+
+QString App::getPathFindingLog()
+{
+    QString log_txt;
+    for (int i = 1; i <= NB_ALGOS; i++)
+    {
+        log_txt += getAlgoName(i) + ":\n" + m_path_finding_res.value(getAlgoFromInt(i)).toText() + "\n\n";
+    }
+
+    return log_txt;
 }

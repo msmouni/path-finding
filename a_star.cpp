@@ -25,9 +25,10 @@ void Astar::init()
     reset();
 }
 
-void Astar::find()
+PathFindingResult Astar::find()
 {
     qint64 duration = 0;
+    int total_checks = 0;
 
     if (m_map->isReady())
     {
@@ -42,6 +43,8 @@ void Astar::find()
 
         while (!m_priority_queue.empty())
         {
+            total_checks += 1;
+
             m_current_tile = m_priority_queue.top();
 
             m_priority_queue.pop();
@@ -69,6 +72,7 @@ void Astar::find()
                 QVector<QPoint> path = m_current_tile.getParents();
                 path.append(m_current_tile.getIdx());
 
+                return PathFindingResult(true, total_checks, duration, path);
             }
             else
             {
@@ -112,6 +116,8 @@ void Astar::find()
             m_timer.restart();
         }
     }
+
+    return PathFindingResult(false, total_checks, duration, QVector<QPoint>());
 }
 
 void Astar::reinitWeightMap()

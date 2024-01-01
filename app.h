@@ -2,6 +2,7 @@
 #define APP_H
 
 #include <QWidget>
+#include <QMap>
 #include "map.h"
 #include "run.h"
 
@@ -21,6 +22,7 @@ public:
     ~App();
 private slots:
     void setVisualizationDelay(int val);
+    void setPathFindingResult(RunResult);
     void reset();
 
 private:
@@ -28,7 +30,10 @@ private:
 
     Map *m_map;
     PathFindingRunner *m_path_finder;
+    // QMap: the items are always sorted by key
+    QMap<PathFindingAlgos, PathFindingResult> m_path_finding_res;
 
     void setLogText(QString txt);
+    QString getPathFindingLog();
 };
 #endif // APP_H

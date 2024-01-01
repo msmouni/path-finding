@@ -12,11 +12,12 @@ void Bfs::init()
     reset();
 }
 
-void Bfs::find()
+PathFindingResult Bfs::find()
 {
     //    qDebug() << "Running Bfs in Thread:" << QThread::currentThreadId();
 
     qint64 duration = 0;
+    int total_checks = 0;
 
     if (m_map->isReady())
     {
@@ -31,6 +32,7 @@ void Bfs::find()
 
         while (!m_queue.isEmpty())
         {
+            total_checks += 1;
 
             m_current_parents = m_queue.dequeue();
             QPoint &current_tile = m_current_parents.last();
@@ -54,6 +56,7 @@ void Bfs::find()
                     }
                 }
 
+                return PathFindingResult(true, total_checks, duration, m_current_parents);
             }
             else
             {
@@ -99,6 +102,7 @@ void Bfs::find()
         }
     }
 
+    return PathFindingResult(false, total_checks, duration, QVector<QPoint>());
 }
 
 void Bfs::reset()

@@ -10,6 +10,7 @@ public:
     explicit Bfs(QObject *parent = nullptr, Map *map = nullptr);
 
     void init();
+    PathFindingResult find();
 
 private:
     QQueue<QVector<QPoint>> m_queue;

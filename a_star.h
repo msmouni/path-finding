@@ -69,7 +69,7 @@ public:
     explicit Astar(QObject *parent = nullptr, Map *map = nullptr);
 
     void init();
-    void find();
+    PathFindingResult find();
 
 private:
     const qreal MAX_WEIGHT_VALUE = 99999;

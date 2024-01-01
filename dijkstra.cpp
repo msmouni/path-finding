@@ -26,9 +26,10 @@ void Dijkstra::init()
     reset();
 }
 
-void Dijkstra::find()
+PathFindingResult Dijkstra::find()
 {
     qint64 duration = 0;
+    int total_checks = 0;
 
     if (m_map->isReady())
     {
@@ -41,7 +42,7 @@ void Dijkstra::find()
 
         while (!m_priority_queue.empty())
         {
-        const DijkstraTile &current_tile = m_priority_queue.top();
+            total_checks += 1;
 
             m_current_tile = m_priority_queue.top();
 
@@ -70,6 +71,7 @@ void Dijkstra::find()
                 QVector<QPoint> path = m_current_tile.getParents();
                 path.append(m_current_tile.getIdx());
 
+                return PathFindingResult(true, total_checks, duration, path);
             }
             else
             {
@@ -112,6 +114,7 @@ void Dijkstra::find()
         }
     }
 
+    return PathFindingResult(false, total_checks, duration, QVector<QPoint>());
 }
 
 void Dijkstra::reinitWeightMap()
