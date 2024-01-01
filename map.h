@@ -24,6 +24,11 @@ public:
     int getNbRows();
     int getNbColumns();
     void clearVisited();
+    bool isReady();
+
+public slots:
+    void setNbRows(int nb_rows);
+    void setNbColumns(int nb_columns);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
@@ -39,6 +44,7 @@ protected:
     void focusOutEvent(QFocusEvent *event) override;
 
 signals:
+    void updated();
     void findPath();
     void stopPathFinding();
 
@@ -62,6 +68,7 @@ private:
     // The mutex is locked when QMutexLocker is created. If locked, the mutex will be unlocked when the QMutexLocker is destroyed.
     QMutex m_mutex;
 
+    void init();
     void setStartIdx(QPoint idx);
     void setTargetIdx(QPoint idx);
 

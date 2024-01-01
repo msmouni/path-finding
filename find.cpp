@@ -4,10 +4,15 @@
 #include <QElapsedTimer>
 #include <QThread>
 
-PathFinding::PathFinding(QObject *parent, Map *map)
-    : QObject{parent}, m_map(map)
+PathFinding::PathFinding(QObject *parent, Map *map, int visual_delay_ms)
+    : QObject{parent}, m_map(map), m_visual_delay_ms(visual_delay_ms)
 {
     m_timer.start();
+}
+
+void PathFinding::setVisualDelayMs(int delay_ms)
+{
+    m_visual_delay_ms = delay_ms;
 }
 
 void PathFinding::processAdjacentTiles(const QPoint &tile_idx)

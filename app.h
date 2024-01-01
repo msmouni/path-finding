@@ -19,11 +19,16 @@ class App : public QWidget
 public:
     App(QWidget *parent = nullptr);
     ~App();
+private slots:
+    void setVisualizationDelay(int val);
+    void reset();
 
 private:
     Ui::App *ui;
 
     Map *m_map;
-    PathFindingRunner *m_path_finding;
+    PathFindingRunner *m_path_finder;
+
+    void setLogText(QString txt);
 };
 #endif // APP_H

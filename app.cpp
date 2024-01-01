@@ -8,13 +8,47 @@ App::App(QWidget *parent)
 
     m_map = ui->graphicsView->getMapPtr();
 
-    m_path_finding = new PathFindingRunner(m_map);
+    // Algo Selection
+    for (int i = 0; i <= NB_ALGOS; i++)
+    {
+        ui->selectAlgo->addItem(getAlgoName(i));
+    }
 
-    connect(m_map, SIGNAL(stopPathFinding()), m_path_finding, SLOT(terminate()));
-    connect(m_map, SIGNAL(findPath()), m_path_finding, SLOT(restart()));
+    // Map size
+    ui->nb_rows->setValue(m_map->getNbRows());
+    ui->nb_col->setValue(m_map->getNbColumns());
+    connect(ui->nb_rows, SIGNAL(valueChanged(int)), m_map, SLOT(setNbRows(int)));
+    connect(ui->nb_col, SIGNAL(valueChanged(int)), m_map, SLOT(setNbColumns(int)));
+
+    // Visualization delay
+    connect(ui->delaySlider, SIGNAL(valueChanged(int)), this, SLOT(setVisualizationDelay(int)));
+
+    // Path Finding Runner
+    m_path_finder = new PathFindingRunner(m_map);
+    connect(m_map, SIGNAL(updated()), this, SLOT(reset()));
+    connect(ui->selectAlgo, SIGNAL(activated(int)), m_path_finder, SLOT(setAlgo(int)));
+    connect(m_map, SIGNAL(stopPathFinding()), m_path_finder, SLOT(terminate()));
+    connect(m_map, SIGNAL(findPath()), m_path_finder, SLOT(restart()));
 }
 
 App::~App()
 {
     delete ui;
+}
+
+void App::setVisualizationDelay(int val)
+{
+    ui->delay->setText(QString::number(val));
+    m_path_finder->setVisualDelayMs(val);
+}
+
+void App::reset()
+{
+    m_path_finding_res.clear();
+    m_path_finder->reinit();
+}
+
+void App::setLogText(QString txt)
+{
+    ui->logText->setText(txt);
 }
