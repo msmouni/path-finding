@@ -27,6 +27,35 @@ struct PathFindingResult
     }
 };
 
+class PathFindingTile
+{
+private:
+    QPoint m_pos;
+    QVector<QPoint> m_parents;
+
+public:
+    PathFindingTile(QPoint pos = QPoint(0, 0)) : m_pos(pos)
+    {
+    };
+
+    PathFindingTile(QPoint pos, PathFindingTile &parent_tile) : m_pos(pos)
+    {
+        m_parents = parent_tile.getParents();
+
+        m_parents.append(parent_tile.getPos());
+    };
+
+    const QPoint &getPos() const
+    {
+        return m_pos;
+    }
+
+    const QVector<QPoint> &getParents() const
+    {
+        return m_parents;
+    }
+};
+
 class PathFinding : public QObject
 {
 public:
@@ -41,6 +70,7 @@ protected:
     Map *m_map;
     QElapsedTimer m_timer;
     int m_visual_delay_ms;
+    PathFindingTile m_current_tile;
 
     virtual void processTile(const int &tile_idx_x, const int &tile_idx_y) = 0;
     virtual void reset() = 0;

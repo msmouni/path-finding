@@ -13,10 +13,10 @@ void Astar::init()
 
     for (int i = 0; i < m_map->getNbColumns(); i++)
     {
-        QVector<AstarTile> tile_line;
+        QVector<AstarCost> tile_line;
         for (int j = 0; j < m_map->getNbRows(); j++)
         {
-            tile_line.append(AstarTile(MAX_WEIGHT_VALUE, 0, QPoint(i, j)));
+            tile_line.append(AstarCost(MAX_WEIGHT_VALUE, 0));
         }
 
         m_weight_map.append(tile_line);
@@ -37,17 +37,19 @@ PathFindingResult Astar::find()
         QPoint start_idx = m_map->getStartIdx();
 
         m_weight_map[start_idx.x()][start_idx.y()].setCost(0);
-        m_weight_map[start_idx.x()][start_idx.y()].setTargetCost(getEstimatedTargetCost(start_idx));
 
-        m_priority_queue.push(m_weight_map[start_idx.x()][start_idx.y()]);
+        qreal estimated_target_cost = getEstimatedTargetCost(start_idx);
+        m_weight_map[start_idx.x()][start_idx.y()].setTargetCost(estimated_target_cost);
+
+        m_priority_queue.push(AstarTile(start_idx, 0, estimated_target_cost));
 
         while (!m_priority_queue.empty())
         {
-            m_current_tile = m_priority_queue.top();
+            m_current_tile = m_priority_queue.top().getTile();
 
             m_priority_queue.pop();
 
-            TileType tile_type = m_map->getTileType(m_current_tile.getIdx());
+            TileType tile_type = m_map->getTileType(m_current_tile.getPos());
 
             // Note: When adding a Tile with lower cost to the priority_queue, the old Tile with greater cost remains in the priority_queue
             if (tile_type != TileType::Visited)
@@ -57,7 +59,7 @@ PathFindingResult Astar::find()
                 if (tile_type == TileType::Target)
                 {
                     //            qDebug()<<current_parents;
-                    qDebug() << "Cost" << m_current_tile.getCost();
+                    qDebug() << "Cost" << m_weight_map[m_current_tile.getPos().x()][m_current_tile.getPos().y()].getWeight();
                     qDebug() << "elapsed time" << duration << " us";
                     for (QPoint tile_pos : m_current_tile.getParents())
                     {
@@ -73,7 +75,7 @@ PathFindingResult Astar::find()
                     }
 
                     QVector<QPoint> path = m_current_tile.getParents();
-                    path.append(m_current_tile.getIdx());
+                    path.append(m_current_tile.getPos());
 
                     return PathFindingResult(true, total_checks, duration, path);
                 }
@@ -83,7 +85,7 @@ PathFindingResult Astar::find()
                     duration += m_timer.nsecsElapsed() / 1000;
                     if (tile_type != TileType::Start)
                     {
-                        m_map->setTileType(m_current_tile.getIdx(), TileType::Current);
+                        m_map->setTileType(m_current_tile.getPos(), TileType::Current);
                     }
 
                     // TMP
@@ -98,7 +100,7 @@ PathFindingResult Astar::find()
                     m_timer.restart();
                 }
 
-                processAdjacentTiles(m_current_tile.getIdx()); // new elements are pushed to the priority_queue, so references obtained by m_priority_queue.top() will be invalid
+                processAdjacentTiles(m_current_tile.getPos()); // new elements are pushed to the priority_queue, so references obtained by m_priority_queue.top() will be invalid
 
                 duration += m_timer.nsecsElapsed() / 1000;
                 m_map->update();
@@ -107,7 +109,7 @@ PathFindingResult Astar::find()
 
                 if (tile_type != TileType::Start)
                 {
-                    m_map->setTileType(m_current_tile.getIdx(), TileType::Visited);
+                    m_map->setTileType(m_current_tile.getPos(), TileType::Visited);
                 }
                 // TMP
                 for (QPoint parent : m_current_tile.getParents())
@@ -132,7 +134,8 @@ void Astar::reinitWeightMap()
     {
         for (int j = 0; j < m_map->getNbRows(); j++)
         {
-            m_weight_map[i][j].reset(MAX_WEIGHT_VALUE, 0);
+            m_weight_map[i][j].setCost(MAX_WEIGHT_VALUE);
+            m_weight_map[i][j].setTargetCost(0);
         }
     }
 }
@@ -170,29 +173,25 @@ void Astar::processTile(const int &tile_idx_x, const int &tile_idx_y)
         TileType tile_type = m_map->getTileType(tile_idx_x, tile_idx_y);
         if (tile_type == TileType::Empty || tile_type == TileType::Target)
         {
-            const QPoint &current_tile_idx = m_current_tile.getIdx();
+            const QPoint &current_tile_idx = m_current_tile.getPos();
             int current_x = current_tile_idx.x();
             int current_y = current_tile_idx.y();
 
-            qreal cost = sqrt(pow(current_x - tile_idx_x, 2) + pow(current_y - tile_idx_y, 2)) + m_current_tile.getCost();
+            qreal cost = sqrt(pow(current_x - tile_idx_x, 2) + pow(current_y - tile_idx_y, 2)) + m_weight_map[current_x][current_y].getCost();
 
             if (m_weight_map[tile_idx_x][tile_idx_y].getCost() > cost)
             {
                 m_weight_map[tile_idx_x][tile_idx_y].setCost(cost);
 
-                m_weight_map[tile_idx_x][tile_idx_y].setTargetCost(getEstimatedTargetCost(tile_idx_x, tile_idx_y));
-
-                QVector<QPoint> parents = m_current_tile.getParents();
-                parents.append(QPoint(current_x, current_y));
-
-                m_weight_map[tile_idx_x][tile_idx_y].setParent(parents);
+                qreal target_cost = getEstimatedTargetCost(tile_idx_x, tile_idx_y);
+                m_weight_map[tile_idx_x][tile_idx_y].setTargetCost(target_cost);
 
                 /*
                  NOTE: When a new element is pushed into the priority queue,
                        it may lead to reallocation and invalidation of references or pointers to elements in the container,
                        including the references obtained from the previous calls of top().
                  */
-                m_priority_queue.push(m_weight_map[tile_idx_x][tile_idx_y]);
+                m_priority_queue.push(AstarTile(QPoint(tile_idx_x, tile_idx_y), cost, target_cost, m_current_tile));
             }
         }
     }

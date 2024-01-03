@@ -13,8 +13,7 @@ public:
     PathFindingResult find();
 
 private:
-    QQueue<QVector<QPoint>> m_queue;
-    QVector<QPoint> m_current_parents;
+    QQueue<PathFindingTile> m_queue;
 
     void reset();
     void processTile(const int &tile_idx_x, const int &tile_idx_y);
