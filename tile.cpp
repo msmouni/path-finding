@@ -48,12 +48,12 @@ void Tile::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     }
     case TileType::VisitedUpWay:
     {
-        painter->setBrush(Qt::blue);
+        painter->setBrush(QColor(100,0,100,255));
         break;
     }
     case TileType::VisitedDownWay:
     {
-        painter->setBrush(Qt::blue);
+        painter->setBrush(QColor(0,100,100,255));
         break;
     }
     case TileType::Current:

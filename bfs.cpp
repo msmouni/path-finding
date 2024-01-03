@@ -181,11 +181,11 @@ void Bfs::processTile(const int &tile_idx_x, const int &tile_idx_y, MvmtDirectio
                     {
                         if (tile_type == TileType::VisitedDownWay)
                         {
-                            m_map->setTileType(tile_idx_x, tile_idx_y, TileType::VisitedUpWay);
+                            m_map->setTileType(tile_idx_x, tile_idx_y, TileType::Visited);
                         }
                         else
                         {
-                            m_map->setTileType(tile_idx_x, tile_idx_y, TileType::Visited);
+                            m_map->setTileType(tile_idx_x, tile_idx_y, TileType::VisitedUpWay);
                         }
                     }
                 }
@@ -196,7 +196,7 @@ void Bfs::processTile(const int &tile_idx_x, const int &tile_idx_y, MvmtDirectio
 
                 if (tile_type != TileType::Target)
                 {
-                    if (tile_type == TileType::VisitedDownWay)
+                    if (tile_type == TileType::VisitedUpWay)
                     {
                         m_map->setTileType(tile_idx_x, tile_idx_y, TileType::Visited);
                     }
