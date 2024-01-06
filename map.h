@@ -15,14 +15,14 @@ public:
 
     QRectF boundingRect() const override;
 
-    QPoint getStartIdx();
-    QPoint getTargetIdx();
-    TileType getTileType(QPoint indx);
-    TileType getTileType(int idx_x, int idx_y);
-    void setTileType(QPoint idx, TileType tile_type);
-    void setTileType(int idx_x, int idx_y, TileType tile_type);
-    int getNbRows();
-    int getNbColumns();
+    const QPoint &getStartIdx();
+    const QPoint &getTargetIdx();
+    const TileType &getTileType(const QPoint &indx);
+    const TileType &getTileType(const int &idx_x, const int &idx_y);
+    void setTileType(const QPoint &idx, TileType tile_type);
+    void setTileType(const int &idx_x, const int &idx_y, TileType tile_type);
+    const int &getNbRows();
+    const int &getNbColumns();
     void clearVisited();
     bool isReady();
 

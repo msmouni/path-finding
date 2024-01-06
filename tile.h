@@ -26,7 +26,7 @@ public:
                QWidget *widget) override;
 
     void setType(TileType type);
-    TileType getType();
+    const TileType &getType();
 
 private:
     QRectF m_rect;
