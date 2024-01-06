@@ -16,45 +16,45 @@ QRectF Map::boundingRect() const
     return childrenBoundingRect();
 }
 
-QPoint Map::getStartIdx()
+const QPoint &Map::getStartIdx()
 {
     QMutexLocker ml(&m_mutex);
 
     return m_start_idx;
 }
 
-TileType Map::getTileType(QPoint indx)
+const TileType &Map::getTileType(const QPoint &indx)
 {
     return getTileType(indx.x(), indx.y());
 }
 
-TileType Map::getTileType(int idx_x, int idx_y)
+const TileType &Map::getTileType(const int &idx_x, const int &idx_y)
 {
     QMutexLocker ml(&m_mutex);
 
     return m_tiles[idx_x][idx_y]->getType();
 }
 
-void Map::setTileType(QPoint idx, TileType tile_type)
+void Map::setTileType(const QPoint &idx, TileType tile_type)
 {
     setTileType(idx.x(), idx.y(), tile_type);
 }
 
-void Map::setTileType(int idx_x, int idx_y, TileType tile_type)
+void Map::setTileType(const int &idx_x, const int &idx_y, TileType tile_type)
 {
     QMutexLocker ml(&m_mutex);
 
     m_tiles[idx_x][idx_y]->setType(tile_type);
 }
 
-int Map::getNbRows()
+const int &Map::getNbRows()
 {
     QMutexLocker ml(&m_mutex);
 
     return m_nb_rows;
 }
 
-int Map::getNbColumns()
+const int &Map::getNbColumns()
 {
     QMutexLocker ml(&m_mutex);
 
@@ -270,7 +270,7 @@ void Map::setTargetIdx(QPoint idx)
     m_target_idx = idx;
 }
 
-QPoint Map::getTargetIdx()
+const QPoint &Map::getTargetIdx()
 {
     QMutexLocker ml(&m_mutex);
 

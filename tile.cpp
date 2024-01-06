@@ -68,7 +68,7 @@ void Tile::setType(TileType type)
     m_type = type;
 }
 
-TileType Tile::getType()
+const TileType &Tile::getType()
 {
     return m_type;
 }

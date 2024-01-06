@@ -7,41 +7,22 @@
 struct DijkstraTile
 {
 private:
+    PathFindingTile m_tile;
     qreal m_weight;
-    QPoint m_idx;
-    QVector<QPoint> m_parents;
 
 public:
-    DijkstraTile(qreal weight = 0, QPoint idx = QPoint(0, 0), QVector<QPoint> parents = QVector<QPoint>()) : m_weight(weight), m_idx(idx), m_parents(parents){};
+    DijkstraTile(QPoint pos, qreal weight, PathFindingTile &parent) : m_weight(weight), m_tile(pos, parent){};
 
-    const QPoint &getIdx() const
+    DijkstraTile(QPoint pos = QPoint(0, 0), qreal weight = 0) : m_weight(weight), m_tile(pos){};
+
+    const QPoint &getPos() const
     {
-        return m_idx;
-    }
-    qreal getWeight() const
-    {
-        return m_weight;
+        return m_tile.getPos();
     }
 
-    void setWeight(qreal new_weight)
+    const PathFindingTile &getTile() const
     {
-        m_weight = new_weight;
-    }
-
-    const QVector<QPoint> &getParents() const
-    {
-        return m_parents;
-    }
-
-    void setParent(QVector<QPoint> new_parents)
-    {
-        m_parents = new_parents;
-    }
-
-    void reset(qreal new_weight)
-    {
-        setWeight(new_weight);
-        m_parents.clear();
+        return m_tile;
     }
 
     // operator used in priority_queue
@@ -57,20 +38,22 @@ public:
     explicit Dijkstra(QObject *parent = nullptr, Map *map = nullptr);
 
     void init();
-    PathFindingResult find();
 
 private:
     const qreal MAX_WEIGHT_VALUE = 99999;
-    QVector<QVector<DijkstraTile>> m_weight_map;
+    QVector<QVector<qreal>> m_weight_map;
 
     // Note reg std::multiset : https://stackoverflow.com/questions/5895792/why-is-using-a-stdmultiset-as-a-priority-queue-faster-than-using-a-stdpriori
     std::priority_queue<DijkstraTile> m_priority_queue;
-    DijkstraTile m_current_tile;
+
+    // from parent
+    void reset();
+    void initSearch();
+    void updateCurrentTile();
+    bool isQueueEmpty();
+    void processTile(const int &tile_idx_x, const int &tile_idx_y);
 
     void reinitWeightMap();
-
-    void reset();
-    void processTile(const int &tile_idx_x, const int &tile_idx_y);
 };
 
 #endif // DIJKSTRA_H

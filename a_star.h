@@ -4,62 +4,61 @@
 #include "find.h"
 #include <queue>
 
-struct AstarTile
+struct AstarCost
 {
 private:
-    qreal m_cost;
+    qreal m_cost_from_start;
     qreal m_estimated_target_cost;
-    QPoint m_idx;
-    QVector<QPoint> m_parents;
 
 public:
-    AstarTile(qreal cost = 0, qreal target_cost = 0, QPoint idx = QPoint(0, 0), QVector<QPoint> parents = QVector<QPoint>()) : m_cost(cost), m_estimated_target_cost(target_cost), m_idx(idx), m_parents(parents){};
+    AstarCost(qreal cost = 0, qreal target_cost = 0) : m_cost_from_start(cost), m_estimated_target_cost(target_cost){};
 
-    const QPoint &getIdx() const
-    {
-        return m_idx;
-    }
     qreal getWeight() const
     {
-        return m_cost + m_estimated_target_cost;
+        return m_cost_from_start + m_estimated_target_cost;
     }
 
     void setCost(qreal new_cost)
     {
-        m_cost = new_cost;
+        m_cost_from_start = new_cost;
     }
 
     qreal getCost() const
     {
-        return m_cost;
+        return m_cost_from_start;
     }
 
     void setTargetCost(qreal new_target_cost)
     {
         m_estimated_target_cost = new_target_cost;
     }
+};
 
-    const QVector<QPoint> &getParents() const
+struct AstarTile
+{
+private:
+    PathFindingTile m_tile;
+    AstarCost m_cost;
+
+public:
+    AstarTile(QPoint pos, qreal cost, qreal target_cost, PathFindingTile &parent) : m_cost(cost, target_cost), m_tile(pos, parent){};
+
+    AstarTile(QPoint pos, qreal cost, qreal target_cost) : m_cost(cost, target_cost), m_tile(pos){};
+
+    const QPoint &getPos() const
     {
-        return m_parents;
+        return m_tile.getPos();
     }
 
-    void setParent(QVector<QPoint> new_parents)
+    const PathFindingTile &getTile() const
     {
-        m_parents = new_parents;
-    }
-
-    void reset(qreal new_cost, qreal new_target_cost)
-    {
-        m_cost = new_cost;
-        m_estimated_target_cost = new_target_cost;
-        m_parents.clear();
+        return m_tile;
     }
 
     // operator used in priority_queue
     bool operator<(const AstarTile &other) const
     {
-        return getWeight() > other.getWeight();
+        return m_cost.getWeight() > other.m_cost.getWeight();
     }
 };
 
@@ -69,23 +68,25 @@ public:
     explicit Astar(QObject *parent = nullptr, Map *map = nullptr);
 
     void init();
-    PathFindingResult find();
 
 private:
     const qreal MAX_WEIGHT_VALUE = 99999;
-    QVector<QVector<AstarTile>> m_weight_map;
+    QVector<QVector<AstarCost>> m_weight_map;
 
     // Note reg std::multiset : https://stackoverflow.com/questions/5895792/why-is-using-a-stdmultiset-as-a-priority-queue-faster-than-using-a-stdpriori
     std::priority_queue<AstarTile> m_priority_queue;
-    AstarTile m_current_tile;
+
+    // from parent
+    void reset();
+    void initSearch();
+    void updateCurrentTile();
+    bool isQueueEmpty();
+    void processTile(const int &tile_idx_x, const int &tile_idx_y);
 
     void reinitWeightMap();
 
     qreal getEstimatedTargetCost(const QPoint &idx);
     qreal getEstimatedTargetCost(const int &idx_x, const int &idx_y);
-
-    void reset();
-    void processTile(const int &tile_idx_x, const int &tile_idx_y);
 };
 
 #endif // ASTAR_H
