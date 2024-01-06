@@ -25,109 +25,6 @@ void Astar::init()
     reset();
 }
 
-PathFindingResult Astar::find()
-{
-    qint64 duration = 0;
-    int total_checks = 0;
-
-    if (m_map->isReady())
-    {
-        reset();
-
-        QPoint start_idx = m_map->getStartIdx();
-
-        m_weight_map[start_idx.x()][start_idx.y()].setCost(0);
-
-        qreal estimated_target_cost = getEstimatedTargetCost(start_idx);
-        m_weight_map[start_idx.x()][start_idx.y()].setTargetCost(estimated_target_cost);
-
-        m_priority_queue.push(AstarTile(start_idx, 0, estimated_target_cost));
-
-        while (!m_priority_queue.empty())
-        {
-            m_current_tile = m_priority_queue.top().getTile();
-
-            m_priority_queue.pop();
-
-            TileType tile_type = m_map->getTileType(m_current_tile.getPos());
-
-            // Note: When adding a Tile with lower cost to the priority_queue, the old Tile with greater cost remains in the priority_queue
-            if (tile_type != TileType::Visited)
-            {
-                total_checks += 1;
-
-                if (tile_type == TileType::Target)
-                {
-                    //            qDebug()<<current_parents;
-                    qDebug() << "Cost" << m_weight_map[m_current_tile.getPos().x()][m_current_tile.getPos().y()].getWeight();
-                    qDebug() << "elapsed time" << duration << " us";
-                    for (QPoint tile_pos : m_current_tile.getParents())
-                    {
-                        TileType tile_type = m_map->getTileType(tile_pos);
-                        if (tile_type != TileType::Target && tile_type != TileType::Start)
-                        {
-                            m_map->setTileType(tile_pos.x(), tile_pos.y(), TileType::Path);
-
-                            QThread::msleep(m_visual_delay_ms);
-
-                            m_map->update();
-                        }
-                    }
-
-                    QVector<QPoint> path = m_current_tile.getParents();
-                    path.append(m_current_tile.getPos());
-
-                    return PathFindingResult(true, total_checks, duration, path);
-                }
-                else
-                {
-                    // Not part of the algorithm, just for visualization
-                    duration += m_timer.nsecsElapsed() / 1000;
-                    if (tile_type != TileType::Start)
-                    {
-                        m_map->setTileType(m_current_tile.getPos(), TileType::Current);
-                    }
-
-                    // TMP
-                    for (QPoint parent : m_current_tile.getParents())
-                    {
-                        if (m_map->getTileType(parent) != TileType::Start)
-                        {
-                            m_map->setTileType(parent, TileType::Current);
-                        }
-                    }
-
-                    m_timer.restart();
-                }
-
-                processAdjacentTiles(m_current_tile.getPos()); // new elements are pushed to the priority_queue, so references obtained by m_priority_queue.top() will be invalid
-
-                duration += m_timer.nsecsElapsed() / 1000;
-                m_map->update();
-
-                QThread::msleep(m_visual_delay_ms);
-
-                if (tile_type != TileType::Start)
-                {
-                    m_map->setTileType(m_current_tile.getPos(), TileType::Visited);
-                }
-                // TMP
-                for (QPoint parent : m_current_tile.getParents())
-                {
-                    if (m_map->getTileType(parent) != TileType::Start)
-                    {
-                        m_map->setTileType(parent, TileType::Visited);
-                    }
-                }
-
-                m_timer.restart();
-            }
-        }
-    }
-
-    return PathFindingResult(false, total_checks, duration, QVector<QPoint>());
-}
-
 void Astar::reinitWeightMap()
 {
     for (int i = 0; i < m_map->getNbColumns(); i++)
@@ -163,7 +60,34 @@ void Astar::reset()
         m_priority_queue.pop();
     }
 
+    m_duration_us = 0;
+    m_total_checks = 0;
+
     m_timer.restart();
+}
+
+void Astar::initSearch()
+{
+    QPoint start_idx = m_map->getStartIdx();
+
+    m_weight_map[start_idx.x()][start_idx.y()].setCost(0);
+
+    qreal estimated_target_cost = getEstimatedTargetCost(start_idx);
+    m_weight_map[start_idx.x()][start_idx.y()].setTargetCost(estimated_target_cost);
+
+    m_priority_queue.push(AstarTile(start_idx, 0, estimated_target_cost));
+}
+
+void Astar::updateCurrentTile()
+{
+    m_current_tile = m_priority_queue.top().getTile();
+
+    m_priority_queue.pop();
+}
+
+bool Astar::isQueueEmpty()
+{
+    return m_priority_queue.empty();
 }
 
 void Astar::processTile(const int &tile_idx_x, const int &tile_idx_y)
