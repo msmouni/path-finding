@@ -67,17 +67,9 @@ bool Bfs::isQueueEmpty()
 
 void Bfs::processTile(const int &tile_idx_x, const int &tile_idx_y)
 {
-    // addTileToBfsQueue
-    if (0 <= tile_idx_x && tile_idx_x < m_map->getNbColumns() && 0 <= tile_idx_y && tile_idx_y < m_map->getNbRows())
+    if (!m_queued_map[tile_idx_x][tile_idx_y])
     {
-        if (!m_queued_map[tile_idx_x][tile_idx_y])
-        {
-            TileType tile_type = m_map->getTileType(tile_idx_x, tile_idx_y);
-            if (tile_type == TileType::Empty || tile_type == TileType::Target)
-            {
-                m_queue.enqueue(PathFindingTile(QPoint(tile_idx_x, tile_idx_y), m_current_tile));
-                m_queued_map[tile_idx_x][tile_idx_y] = true;
-            }
-        }
+        m_queue.enqueue(PathFindingTile(QPoint(tile_idx_x, tile_idx_y), m_current_tile));
+        m_queued_map[tile_idx_x][tile_idx_y] = true;
     }
 }

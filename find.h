@@ -56,6 +56,18 @@ public:
     }
 };
 
+enum class AdjacentTile
+{
+    Left,
+    Right,
+    Top,
+    Bottom,
+    TopLeft,
+    TopRight,
+    BottomLeft,
+    BottomRight,
+};
+
 class PathFinding : public QObject
 {
 public:
@@ -69,6 +81,7 @@ public:
 private:
     void drawCurrentPath();
     void visualizeCurrentPath();
+    void tryToProcessTile(const int &x, const int &y, AdjacentTile which_tile);
 
 protected:
     Map *m_map;

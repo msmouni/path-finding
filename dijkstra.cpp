@@ -76,29 +76,21 @@ bool Dijkstra::isQueueEmpty()
 
 void Dijkstra::processTile(const int &tile_idx_x, const int &tile_idx_y)
 {
-    // addDijkstraTile
-    if (0 <= tile_idx_x && tile_idx_x < m_map->getNbColumns() && 0 <= tile_idx_y && tile_idx_y < m_map->getNbRows())
+    const QPoint &current_tile_idx = m_current_tile.getPos();
+    int current_x = current_tile_idx.x();
+    int current_y = current_tile_idx.y();
+
+    qreal weight = sqrt(pow(current_x - tile_idx_x, 2) + pow(current_y - tile_idx_y, 2)) + m_weight_map[current_x][current_y];
+
+    if (m_weight_map[tile_idx_x][tile_idx_y] > weight)
     {
-        TileType tile_type = m_map->getTileType(tile_idx_x, tile_idx_y);
-        if (tile_type == TileType::Empty || tile_type == TileType::Target)
-        {
-            const QPoint &current_tile_idx = m_current_tile.getPos();
-            int current_x = current_tile_idx.x();
-            int current_y = current_tile_idx.y();
+        m_weight_map[tile_idx_x][tile_idx_y] = weight;
 
-            qreal weight = sqrt(pow(current_x - tile_idx_x, 2) + pow(current_y - tile_idx_y, 2)) + m_weight_map[current_x][current_y];
-
-            if (m_weight_map[tile_idx_x][tile_idx_y] > weight)
-            {
-                m_weight_map[tile_idx_x][tile_idx_y] = weight;
-
-                /*
-                NOTE: When a new element is pushed into the priority queue,
-                    it may lead to reallocation and invalidation of references or pointers to elements in the container,
-                    including the references obtained from the previous calls of top().
-                */
-                m_priority_queue.push(DijkstraTile(QPoint(tile_idx_x, tile_idx_y), weight, m_current_tile));
-            }
-        }
+        /*
+        NOTE: When a new element is pushed into the priority queue,
+            it may lead to reallocation and invalidation of references or pointers to elements in the container,
+            including the references obtained from the previous calls of top().
+        */
+        m_priority_queue.push(DijkstraTile(QPoint(tile_idx_x, tile_idx_y), weight, m_current_tile));
     }
 }
