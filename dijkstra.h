@@ -38,7 +38,6 @@ public:
     explicit Dijkstra(QObject *parent = nullptr, Map *map = nullptr);
 
     void init();
-    PathFindingResult find();
 
 private:
     const qreal MAX_WEIGHT_VALUE = 99999;
@@ -47,10 +46,14 @@ private:
     // Note reg std::multiset : https://stackoverflow.com/questions/5895792/why-is-using-a-stdmultiset-as-a-priority-queue-faster-than-using-a-stdpriori
     std::priority_queue<DijkstraTile> m_priority_queue;
 
-    void reinitWeightMap();
-
+    // from parent
     void reset();
+    void initSearch();
+    void updateCurrentTile();
+    bool isQueueEmpty();
     void processTile(const int &tile_idx_x, const int &tile_idx_y);
+
+    void reinitWeightMap();
 };
 
 #endif // DIJKSTRA_H

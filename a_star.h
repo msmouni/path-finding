@@ -68,7 +68,6 @@ public:
     explicit Astar(QObject *parent = nullptr, Map *map = nullptr);
 
     void init();
-    PathFindingResult find();
 
 private:
     const qreal MAX_WEIGHT_VALUE = 99999;
@@ -77,13 +76,17 @@ private:
     // Note reg std::multiset : https://stackoverflow.com/questions/5895792/why-is-using-a-stdmultiset-as-a-priority-queue-faster-than-using-a-stdpriori
     std::priority_queue<AstarTile> m_priority_queue;
 
+    // from parent
+    void reset();
+    void initSearch();
+    void updateCurrentTile();
+    bool isQueueEmpty();
+    void processTile(const int &tile_idx_x, const int &tile_idx_y);
+
     void reinitWeightMap();
 
     qreal getEstimatedTargetCost(const QPoint &idx);
     qreal getEstimatedTargetCost(const int &idx_x, const int &idx_y);
-
-    void reset();
-    void processTile(const int &tile_idx_x, const int &tile_idx_y);
 };
 
 #endif // ASTAR_H
