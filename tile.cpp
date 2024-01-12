@@ -4,10 +4,6 @@ Tile::Tile(QRectF rect, TileType type) : m_rect(rect), m_type(type)
 {
 }
 
-Tile::Tile(QRectF rect) : Tile(rect, TileType::Empty)
-{
-}
-
 QRectF Tile::boundingRect() const
 {
     return m_rect;

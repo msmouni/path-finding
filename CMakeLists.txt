@@ -33,6 +33,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         a_star.h a_star.cpp
         algos.h
         algos.cpp
+        files.h files.cpp
     )
 
 # https://stackoverflow.com/questions/18471827/qtcreator-cant-find-the-class-header-file-after-promoting-a-widget-to-that-clas

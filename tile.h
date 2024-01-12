@@ -4,7 +4,7 @@
 #include <QGraphicsItem>
 #include <QPainter>
 
-enum class TileType
+enum class TileType : uint8_t
 {
     Empty,
     Solid,
@@ -20,8 +20,7 @@ enum class TileType
 class Tile : public QGraphicsItem
 {
 public:
-    Tile(QRectF rect, TileType type);
-    Tile(QRectF rect);
+    Tile(QRectF rect, TileType type = TileType::Empty);
 
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,

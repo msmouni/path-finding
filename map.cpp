@@ -209,11 +209,20 @@ void Map::focusOutEvent(QFocusEvent *event)
     QGraphicsItem::focusOutEvent(event);
 }
 
-void Map::init()
+void Map::init(QVector<QVector<TileType>> tiles_type)
 {
     emit stopPathFinding();
 
     QMutexLocker ml(&m_mutex);
+
+    bool get_tiles_type = false;
+
+    if (!tiles_type.isEmpty())
+    {
+        get_tiles_type = true;
+        m_nb_columns = tiles_type.length();
+        m_nb_rows = tiles_type.first().length();
+    }
 
     m_mouse_boutton = Qt::MouseButton::NoButton;
     m_mouse_button_clicked = false;
@@ -244,7 +253,23 @@ void Map::init()
 
         for (int j = 0; j < m_nb_rows; j++)
         {
-            tile_column.append(new Tile(QRectF(i * m_tile_size.width(), j * m_tile_size.height(), m_tile_size.width(), m_tile_size.height())));
+            TileType tile_type = TileType::Empty;
+            if (get_tiles_type)
+            {
+                tile_type = tiles_type[i][j];
+            }
+
+            if (tile_type == TileType::Start)
+            {
+                m_start_idx = QPoint(i, j);
+                m_start_set = true;
+            }
+            else if (tile_type == TileType::Target)
+            {
+                m_target_idx = QPoint(i, j);
+                m_target_set = true;
+            }
+            tile_column.append(new Tile(QRectF(i * m_tile_size.width(), j * m_tile_size.height(), m_tile_size.width(), m_tile_size.height()), tile_type));
 
             this->addToGroup(tile_column.last());
         }
@@ -352,6 +377,12 @@ bool Map::containsTile(const int &pos_x, const int &pos_y)
 bool Map::containsTile(const QPoint &pos)
 {
     return containsTile(pos.x(), pos.y());
+}
+
+void Map::loadMap(QVector<QVector<TileType>> tiles_type)
+{
+    init(tiles_type);
+    clearVisited();
 }
 
 void Map::setNbRows(int nb_rows)

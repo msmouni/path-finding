@@ -34,6 +34,10 @@ App::App(QWidget *parent)
 
     // Platformer
     ui->platformer_check->setEnabled(true);
+
+    // Files
+    connect(ui->loadButton, SIGNAL(pressed()), this, SLOT(loadMap()));
+    connect(ui->saveButton, SIGNAL(pressed()), this, SLOT(saveMap()));
 }
 
 App::~App()
@@ -69,6 +73,27 @@ void App::findPath()
         ui->platformer_check->setEnabled(false);
         m_path_finder->restart();
     }
+}
+
+void App::saveMap()
+{
+    m_files_handler.saveMap(m_map);
+}
+
+void App::loadMap()
+{
+    m_files_handler.loadMap(m_map);
+    // Block the signals temporarily: In order to not emit SIGNAL(valueChanged(int))
+    ui->nb_rows->blockSignals(true);
+    ui->nb_col->blockSignals(true);
+
+    ui->nb_rows->setValue(m_map->getNbRows());
+    ui->nb_col->setValue(m_map->getNbColumns());
+
+    ui->nb_rows->blockSignals(false);
+    ui->nb_col->blockSignals(false);
+
+    ui->selectAlgo->setCurrentIndex(static_cast<int>(PathFindingAlgos::None));
 }
 
 void App::reset()
