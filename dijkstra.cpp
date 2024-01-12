@@ -176,7 +176,7 @@ void Dijkstra::processTile(const int &tile_idx_x, const int &tile_idx_y, MvmtDir
 
             if (tile_type != TileType::Target)
             {
-                m_map->setTileType(tile_idx_x, tile_idx_y, TileType::Visited);
+                m_map->setTileType(tile_idx_x, tile_idx_y, TileType::Visited); /////////// !!!! current cell visited NOT Adjacent ..
             }
         }
     }

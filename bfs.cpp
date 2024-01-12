@@ -74,13 +74,13 @@ PathFindingResult Bfs::find()
                 duration += m_timer.nsecsElapsed() / 1000;
                 m_map->setTileType(m_current_tile.getPoint(), TileType::Current);
 
-                // TMP
-                for (QPoint parent: m_current_tile.getParentsPoints()){
-                    if (m_map->getTileType(parent) != TileType::Start)
-                    {
-                        m_map->setTileType(parent, TileType::Current);
-                    }
-                }
+//                // TMP
+//                for (QPoint parent: m_current_tile.getParentsPoints()){
+//                    if (m_map->getTileType(parent) != TileType::Start)
+//                    {
+//                        m_map->setTileType(parent, TileType::Current);
+//                    }
+//                }
 
 
                 m_timer.restart();
@@ -98,13 +98,13 @@ PathFindingResult Bfs::find()
             {
                 m_map->setTileType(m_current_tile.getPoint(), tile_type);
 
-                // TMP
-                for (QPoint parent: m_current_tile.getParentsPoints()){
-                    if (m_map->getTileType(parent) != TileType::Start)
-                    {
-                        m_map->setTileType(parent, TileType::Visited);
-                    }
-                }
+//                // TMP
+//                for (QPoint parent: m_current_tile.getParentsPoints()){
+//                    if (m_map->getTileType(parent) != TileType::Start)
+//                    {
+//                        m_map->setTileType(parent, TileType::Visited);
+//                    }
+//                }
             }
 
             m_timer.restart();
@@ -132,15 +132,19 @@ void Bfs::processTile(const int &tile_idx_x, const int &tile_idx_y, MvmtDirectio
     {
         TileType tile_type = m_map->getTileType(tile_idx_x, tile_idx_y);
 
-        if (tile_type == TileType::Empty || tile_type == TileType::Target)
+        bool up_way=mvmt_dir == MvmtDirection::Top || mvmt_dir == MvmtDirection::TopLeft || mvmt_dir == MvmtDirection::TopRight;
+        bool down_way=mvmt_dir == MvmtDirection::Bottom || mvmt_dir == MvmtDirection::BottomLeft || mvmt_dir == MvmtDirection::BottomRight;
+
+        if (tile_type == TileType::Empty || tile_type == TileType::Target || (down_way && tile_type == TileType::VisitedUpWay))
         {
+            // || (up_way && tile_type == TileType::VisitedDownWay)
 
 //            QVector<MvtToPoint> parents = m_current_tile.getParents();
 //            parents.append(m_current_tile.getMvtToPoint());
 
             BfsTile bfs_tile=BfsTile(m_current_tile, MvtToPoint(QPoint(tile_idx_x, tile_idx_y), mvmt_dir));
 
-            if (mvmt_dir == MvmtDirection::Top || mvmt_dir == MvmtDirection::TopLeft || mvmt_dir == MvmtDirection::TopRight){
+            if (up_way){
 //                int up_count=0;
 
                 /*if (parents.length()>=4){
@@ -169,7 +173,12 @@ void Bfs::processTile(const int &tile_idx_x, const int &tile_idx_y, MvmtDirectio
 
                     if (tile_type != TileType::Target)
                     {
-                        m_map->setTileType(tile_idx_x, tile_idx_y, TileType::Visited);
+                        if (tile_type == TileType::VisitedDownWay)
+                        {
+                            m_map->setTileType(tile_idx_x, tile_idx_y, TileType::VisitedUpWay);
+                        }else {
+                            m_map->setTileType(tile_idx_x, tile_idx_y, TileType::Visited);
+                        }
                     }
                 }
             }else {
@@ -177,7 +186,12 @@ void Bfs::processTile(const int &tile_idx_x, const int &tile_idx_y, MvmtDirectio
 
                 if (tile_type != TileType::Target)
                 {
-                    m_map->setTileType(tile_idx_x, tile_idx_y, TileType::Visited);
+                    if (tile_type == TileType::VisitedDownWay)
+                    {
+                        m_map->setTileType(tile_idx_x, tile_idx_y, TileType::Visited);
+                    }else {
+                        m_map->setTileType(tile_idx_x, tile_idx_y, TileType::VisitedDownWay);
+                    }
                 }
             }
             /*m_queue.enqueue(BfsTile(MvtToPoint(QPoint(tile_idx_x, tile_idx_y), mvmt_dir), parents));
