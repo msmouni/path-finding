@@ -25,6 +25,8 @@ public:
     const int &getNbColumns();
     void clearVisited();
     bool isReady();
+    bool containsTile(const int &pos_x, const int &pos_y);
+    bool containsTile(const QPoint &pos);
 
 public slots:
     void setNbRows(int nb_rows);

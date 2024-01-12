@@ -331,7 +331,7 @@ void Map::clearVisited()
         for (Tile *tile : tile_column)
         {
             TileType tile_type = tile->getType();
-            if (tile_type == TileType::Visited || tile_type == TileType::Path || tile_type == TileType::Current)
+            if (tile->isVisited() || tile_type == TileType::Path || tile_type == TileType::Current)
             {
                 tile->setType(TileType::Empty);
             }
@@ -342,6 +342,16 @@ void Map::clearVisited()
 bool Map::isReady()
 {
     return m_target_set && m_start_set;
+}
+
+bool Map::containsTile(const int &pos_x, const int &pos_y)
+{
+    return 0 <= pos_x && pos_x < getNbColumns() && 0 <= pos_y && pos_y < getNbRows();
+}
+
+bool Map::containsTile(const QPoint &pos)
+{
+    return containsTile(pos.x(), pos.y());
 }
 
 void Map::setNbRows(int nb_rows)

@@ -10,6 +10,8 @@ enum class TileType
     Solid,
     Start,
     Target,
+    VisitedUpWay,
+    VisitedDownWay,
     Visited,
     Current,
     Path,
@@ -27,6 +29,7 @@ public:
 
     void setType(TileType type);
     const TileType &getType();
+    bool isVisited();
 
 private:
     QRectF m_rect;

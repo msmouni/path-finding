@@ -13,10 +13,10 @@ void Bfs::init()
 
     for (int i = 0; i < m_map->getNbColumns(); i++)
     {
-        QVector<bool> tile_line;
+        QVector<BfsVisit> tile_line;
         for (int j = 0; j < m_map->getNbRows(); j++)
         {
-            tile_line.append(false);
+            tile_line.append(BfsVisit());
         }
 
         m_queued_map.append(tile_line);
@@ -31,7 +31,8 @@ void Bfs::reinitQueuedMap()
     {
         for (int j = 0; j < m_map->getNbRows(); j++)
         {
-            m_queued_map[i][j] = false;
+            m_queued_map[i][j].setJumpCount(MAX_JUMP_COUNT);
+            m_queued_map[i][j].setVisited(false);
         }
     }
 }
@@ -67,9 +68,19 @@ bool Bfs::isQueueEmpty()
 
 void Bfs::processTile(const int &tile_idx_x, const int &tile_idx_y)
 {
-    if (!m_queued_map[tile_idx_x][tile_idx_y])
+    // BfsVisit is used in order to not queue a Tile twice (queued but not yet visited (m_map..))
+    if (!m_queued_map[tile_idx_x][tile_idx_y].isVisited())
     {
         m_queue.enqueue(PathFindingTile(QPoint(tile_idx_x, tile_idx_y), m_current_tile));
-        m_queued_map[tile_idx_x][tile_idx_y] = true;
+        m_queued_map[tile_idx_x][tile_idx_y].setVisited(true);
+    }
+}
+
+void Bfs::processJumpTile(const int &tile_idx_x, const int &tile_idx_y)
+{
+    if (m_queued_map[tile_idx_x][tile_idx_y].getJumpCount() > m_current_tile.getJumpCount())
+    {
+        m_queue.enqueue(PathFindingTile(QPoint(tile_idx_x, tile_idx_y), m_current_tile));
+        m_queued_map[tile_idx_x][tile_idx_y].setJumpCount(m_current_tile.getJumpCount());
     }
 }

@@ -6,6 +6,8 @@
 #include <QElapsedTimer>
 #include "map.h"
 
+const int MAX_JUMP_COUNT = 3;
+
 struct PathFindingResult
 {
     bool m_path_found;
@@ -32,18 +34,31 @@ class PathFindingTile
 private:
     QPoint m_pos;
     QVector<QPoint> m_parents;
+    bool m_can_jump;
+    int m_jump_count;
 
 public:
     PathFindingTile(QPoint pos = QPoint(0, 0)) : m_pos(pos)
     {
-    };
+        m_jump_count = 0;
+        m_can_jump = false;
+    }
 
     PathFindingTile(QPoint pos, PathFindingTile &parent_tile) : m_pos(pos)
     {
-        m_parents = parent_tile.getParents();
+        m_parents = parent_tile.getPath();
 
-        m_parents.append(parent_tile.getPos());
-    };
+        if (parent_tile.m_pos.y() > pos.y())
+        {
+            m_can_jump = true;
+            m_jump_count = parent_tile.getJumpCount() + 1;
+        }
+        else
+        {
+            m_can_jump = false;
+            m_jump_count = 0;
+        }
+    }
 
     const QPoint &getPos() const
     {
@@ -53,6 +68,27 @@ public:
     const QVector<QPoint> &getParents() const
     {
         return m_parents;
+    }
+
+    bool canJump()
+    {
+        return m_can_jump && m_jump_count < MAX_JUMP_COUNT;
+    }
+
+    void setCanJump()
+    {
+        m_jump_count = 0;
+        m_can_jump = true;
+    }
+
+    const int &getJumpCount()
+    {
+        return m_jump_count;
+    }
+
+    bool isReachedUpWay()
+    {
+        return m_jump_count != 0;
     }
 
     QVector<QPoint> getPath()
@@ -91,6 +127,7 @@ private:
     void drawCurrentPath();
     void visualizeCurrentPath();
     void tryToProcessTile(const int &x, const int &y, AdjacentTile which_tile);
+    void setCurrentTileVisited();
 
 protected:
     Map *m_map;
@@ -106,6 +143,7 @@ protected:
     virtual void updateCurrentTile() = 0;
     virtual bool isQueueEmpty() = 0;
     virtual void processTile(const int &tile_idx_x, const int &tile_idx_y) = 0;
+    virtual void processJumpTile(const int &tile_idx_x, const int &tile_idx_y) = 0;
     void processAdjacentTiles(const QPoint &tile_idx);
 };
 
