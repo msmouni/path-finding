@@ -11,6 +11,8 @@ enum class TileType
     Start,
     Target,
     Visited,
+    VisitedDownWay,
+    VisitedUpWay,
     Current,
     Path,
 };

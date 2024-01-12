@@ -10,7 +10,7 @@ private:
     QVector<MvtToPoint> m_parents;
     int m_jump_count;
 public:
-    BfsTile(MvtToPoint mvmt_point = MvtToPoint(QPoint(0, 0)), QVector<MvtToPoint> parents= QVector<MvtToPoint>()): m_mvmt_point(mvmt_point), m_parents(parents){
+    BfsTile(MvtToPoint mvmt_point = MvtToPoint(QPoint(0, 0))): m_mvmt_point(mvmt_point){
         m_jump_count=0;
 
         MvmtDirection mvmt_dir=mvmt_point.getPrevMvmtDir();
@@ -18,12 +18,18 @@ public:
         if (mvmt_dir == MvmtDirection::Top || mvmt_dir == MvmtDirection::TopLeft || mvmt_dir == MvmtDirection::TopRight){
             m_jump_count+=1;
         }
+    };
 
-        for (MvtToPoint parent: m_parents){
-            MvmtDirection mvmt_dir=parent.getPrevMvmtDir();
-            if (mvmt_dir == MvmtDirection::Top || mvmt_dir == MvmtDirection::TopLeft || mvmt_dir == MvmtDirection::TopRight){
-                m_jump_count+=1;
-            }
+    BfsTile(BfsTile& parent_tile, MvtToPoint mvmt_point ): m_mvmt_point(mvmt_point){
+        m_parents= parent_tile.getParents();
+
+        m_parents.append(parent_tile.getMvtToPoint());
+
+        m_jump_count=parent_tile.getJumpCount();
+
+        MvmtDirection mvmt_dir=mvmt_point.getPrevMvmtDir();
+        if (mvmt_dir == MvmtDirection::Top || mvmt_dir == MvmtDirection::TopLeft || mvmt_dir == MvmtDirection::TopRight){
+            m_jump_count+=1;
         }
     };
 
@@ -49,11 +55,16 @@ public:
     }
 
     void resetJumpCount(){
+        qDebug()<<"Reset Count";
         m_jump_count=0;
     }
 
     const int& getJumpCount(){
         return m_jump_count;
+    }
+
+    const MvmtDirection& getPrevMvmtDir(){
+        return m_parents.last().getPrevMvmtDir();
     }
 
 };

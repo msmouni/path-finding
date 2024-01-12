@@ -23,8 +23,10 @@ void PathFinding::processAdjacentTiles(const QPoint &tile_idx)
     int map_rows_nb = m_map->getNbRows();
     int map_columns_nb = m_map->getNbColumns();
 
-    if (tile_y <map_rows_nb - 1 && m_map->getTileType(tile_x, tile_y + 1) == TileType::Solid){
+    if (tile_y <map_rows_nb - 1 && tile_x>0 && m_map->getTileType(tile_x-1, tile_y + 1) == TileType::Solid){
         processTile(tile_x - 1, tile_y, MvmtDirection::Left);
+    }
+    if (tile_y <map_rows_nb - 1 && tile_x<map_columns_nb-1 && m_map->getTileType(tile_x+1, tile_y + 1) == TileType::Solid){
         processTile(tile_x + 1, tile_y, MvmtDirection::Right);
     }
     processTile(tile_x, tile_y - 1, MvmtDirection::Top);

@@ -37,11 +37,14 @@ PathFindingResult Bfs::find()
             m_current_tile = m_queue.dequeue();
             //            QPoint &current_tile = m_current_parents.last().getPoint();
 
+//            qDebug()<<"Y+1 type"<<(int)m_map->getTileType(m_current_tile.getPoint().x(), m_current_tile.getPoint().y() + 1);
             if  (m_current_tile.getPoint().y() <m_map->getNbRows() - 1 &&
                 m_map->getTileType(m_current_tile.getPoint().x(), m_current_tile.getPoint().y() + 1) == TileType::Solid){
                 m_current_tile.resetJumpCount();
                 m_landed=true;
 
+            }else {
+                m_landed=false;
             }
 
             TileType tile_type = m_map->getTileType(m_current_tile.getPoint());
@@ -132,10 +135,10 @@ void Bfs::processTile(const int &tile_idx_x, const int &tile_idx_y, MvmtDirectio
         if (tile_type == TileType::Empty || tile_type == TileType::Target)
         {
 
-            QVector<MvtToPoint> parents = m_current_tile.getParents();
-            parents.append(m_current_tile.getMvtToPoint());
+//            QVector<MvtToPoint> parents = m_current_tile.getParents();
+//            parents.append(m_current_tile.getMvtToPoint());
 
-            BfsTile bfs_tile=BfsTile(MvtToPoint(QPoint(tile_idx_x, tile_idx_y), mvmt_dir), parents);
+            BfsTile bfs_tile=BfsTile(m_current_tile, MvtToPoint(QPoint(tile_idx_x, tile_idx_y), mvmt_dir));
 
             if (mvmt_dir == MvmtDirection::Top || mvmt_dir == MvmtDirection::TopLeft || mvmt_dir == MvmtDirection::TopRight){
 //                int up_count=0;
@@ -149,10 +152,10 @@ void Bfs::processTile(const int &tile_idx_x, const int &tile_idx_y, MvmtDirectio
                     }
                 }*/
 
-                if (mvmt_dir == MvmtDirection::TopLeft){
+                /*if (mvmt_dir == MvmtDirection::TopLeft){
                     qDebug()<<"TopLeft";
                 }
-                qDebug()<<"jump_count"<<bfs_tile.getJumpCount();
+                qDebug()<<"jump_count"<<bfs_tile.getJumpCount();*/
 
                 /*if  (m_current_tile.getPoint().y() <m_map->getNbRows() - 1 &&
                     m_map->getTileType(m_current_tile.getPoint().x(), m_current_tile.getPoint().y() + 1) == TileType::Solid){
@@ -160,9 +163,8 @@ void Bfs::processTile(const int &tile_idx_x, const int &tile_idx_y, MvmtDirectio
 
                 }*/
 
-                if (m_landed && bfs_tile.getJumpCount()<=3){
+                if ((m_landed || (bfs_tile.getPrevMvmtDir() == MvmtDirection::Top || bfs_tile.getPrevMvmtDir() == MvmtDirection::TopLeft || bfs_tile.getPrevMvmtDir() == MvmtDirection::TopRight)) && bfs_tile.getJumpCount()<=3){
 //                    m_jump_count+=1;
-
                     m_queue.enqueue(bfs_tile);
 
                     if (tile_type != TileType::Target)
