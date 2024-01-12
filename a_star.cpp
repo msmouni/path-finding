@@ -53,6 +53,7 @@ PathFindingResult Astar::find()
             if (tile_type == TileType::Target)
             {
                 //            qDebug()<<current_parents;
+                qDebug()<<"Cost"<<m_current_tile.getCost();
                 qDebug() << "elapsed time" << duration << " us";
                 for (QPoint tile_pos : m_current_tile.getParents())
                 {
@@ -76,6 +77,15 @@ PathFindingResult Astar::find()
                 duration += m_timer.nsecsElapsed() / 1000;
                 m_map->setTileType(m_current_tile.getIdx(), TileType::Current);
 
+                // TMP
+                for (QPoint parent: m_current_tile.getParents()){
+                    if (m_map->getTileType(parent) != TileType::Start)
+                    {
+                        m_map->setTileType(parent, TileType::Current);
+                    }
+                }
+
+
                 m_timer.restart();
             }
 
@@ -89,6 +99,14 @@ PathFindingResult Astar::find()
             if (tile_type != TileType::Target)
             {
                 m_map->setTileType(m_current_tile.getIdx(), tile_type);
+
+                // TMP
+                for (QPoint parent: m_current_tile.getParents()){
+                    if (m_map->getTileType(parent) != TileType::Start)
+                    {
+                        m_map->setTileType(parent, TileType::Visited);
+                    }
+                }
             }
 
             m_timer.restart();

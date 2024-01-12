@@ -52,6 +52,7 @@ PathFindingResult Dijkstra::find()
             if (tile_type == TileType::Target)
             {
                 //            qDebug()<<current_parents;
+                qDebug()<<"Weight<"<<m_current_tile.getWeight();
                 qDebug() << "elapsed time" << duration << " us";
                 for (QPoint tile_pos : m_current_tile.getParents())
                 {
@@ -75,6 +76,13 @@ PathFindingResult Dijkstra::find()
                 // Not part of the algorithm, just for visualization
                 duration += m_timer.nsecsElapsed() / 1000;
                 m_map->setTileType(m_current_tile.getIdx(), TileType::Current);
+                // TMP
+                for (QPoint parent: m_current_tile.getParents()){
+                    if (m_map->getTileType(parent) != TileType::Start)
+                    {
+                        m_map->setTileType(parent, TileType::Current);
+                    }
+                }
 
                 m_timer.restart();
             }
@@ -89,6 +97,13 @@ PathFindingResult Dijkstra::find()
             if (tile_type != TileType::Target)
             {
                 m_map->setTileType(m_current_tile.getIdx(), tile_type);
+                // TMP
+                for (QPoint parent: m_current_tile.getParents()){
+                    if (m_map->getTileType(parent) != TileType::Start)
+                    {
+                        m_map->setTileType(parent, TileType::Visited);
+                    }
+                }
             }
 
             m_timer.restart();

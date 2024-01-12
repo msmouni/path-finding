@@ -64,6 +64,15 @@ PathFindingResult Bfs::find()
                 duration += m_timer.nsecsElapsed() / 1000;
                 m_map->setTileType(current_tile, TileType::Current);
 
+                // TMP
+                for (QPoint parent: m_current_parents){
+                    if (m_map->getTileType(parent) != TileType::Start)
+                    {
+                        m_map->setTileType(parent, TileType::Current);
+                    }
+                }
+
+
                 m_timer.restart();
             }
 
@@ -78,6 +87,14 @@ PathFindingResult Bfs::find()
             if (tile_type != TileType::Target)
             {
                 m_map->setTileType(current_tile, tile_type);
+
+                // TMP
+                for (QPoint parent: m_current_parents){
+                    if (m_map->getTileType(parent) != TileType::Start)
+                    {
+                        m_map->setTileType(parent, TileType::Visited);
+                    }
+                }
             }
 
             m_timer.restart();
