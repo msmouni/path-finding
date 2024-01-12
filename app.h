@@ -23,6 +23,8 @@ public:
 private slots:
     void setVisualizationDelay(int val);
     void setPathFindingResult(RunResult);
+    void setPlatformer(int);
+    void findPath();
     void reset();
 
 private:

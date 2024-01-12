@@ -114,6 +114,13 @@
         <widget class="QComboBox" name="selectAlgo"/>
        </item>
        <item>
+        <widget class="QCheckBox" name="platformer_check">
+         <property name="text">
+          <string>Platformer</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="horizontalSpacer_4">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>

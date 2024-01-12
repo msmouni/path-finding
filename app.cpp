@@ -28,8 +28,12 @@ App::App(QWidget *parent)
     connect(m_map, SIGNAL(updated()), this, SLOT(reset()));
     connect(ui->selectAlgo, SIGNAL(activated(int)), m_path_finder, SLOT(setAlgo(int)));
     connect(m_map, SIGNAL(stopPathFinding()), m_path_finder, SLOT(terminate()));
-    connect(m_map, SIGNAL(findPath()), m_path_finder, SLOT(restart()));
+    connect(m_map, SIGNAL(findPath()), this, SLOT(findPath()));
     connect(m_path_finder, SIGNAL(pathFindingRes(RunResult)), this, SLOT(setPathFindingResult(RunResult)));
+    connect(ui->platformer_check, SIGNAL(stateChanged(int)), this, SLOT(setPlatformer(int)));
+
+    // Platformer
+    ui->platformer_check->setEnabled(true);
 }
 
 App::~App()
@@ -45,9 +49,26 @@ void App::setVisualizationDelay(int val)
 
 void App::setPathFindingResult(RunResult res)
 {
+    ui->platformer_check->setEnabled(true);
     m_path_finding_res.insert(res.m_algo, res.m_path_finding);
 
     setLogText(getPathFindingLog());
+}
+
+void App::setPlatformer(int state)
+{
+    m_path_finding_res.clear();
+    setLogText(getPathFindingLog());
+    m_path_finder->setPlatformer(state == Qt::Checked);
+}
+
+void App::findPath()
+{
+    if (m_map->isReady() && m_path_finder->isReady())
+    {
+        ui->platformer_check->setEnabled(false);
+        m_path_finder->restart();
+    }
 }
 
 void App::reset()
@@ -55,6 +76,7 @@ void App::reset()
     m_path_finding_res.clear();
     m_path_finder->reinit();
     setLogText(getPathFindingLog());
+    ui->platformer_check->setEnabled(true);
 }
 
 void App::setLogText(QString txt)

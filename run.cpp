@@ -7,6 +7,8 @@ PathFindingRunner::PathFindingRunner(Map *map)
     m_bfs = new Bfs(nullptr, map);
     m_dijstra = new Dijkstra(nullptr, map);
     m_a_star = new Astar(nullptr, map);
+
+    m_selected_algo = PathFindingAlgos::None;
 }
 
 void PathFindingRunner::run()
@@ -90,4 +92,18 @@ void PathFindingRunner::setAlgo(int algo_int)
     reinit();
 
     start();
+}
+
+void PathFindingRunner::setPlatformer(bool set)
+{
+    m_bfs->setPlatformer(set);
+    m_dijstra->setPlatformer(set);
+    m_a_star->setPlatformer(set);
+
+    restart();
+}
+
+bool PathFindingRunner::isReady()
+{
+    return m_selected_algo != PathFindingAlgos::None;
 }

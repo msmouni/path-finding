@@ -51,6 +51,11 @@ void PathFinding::setVisualDelayMs(int delay_ms)
     m_visual_delay_ms = delay_ms;
 }
 
+void PathFinding::setPlatformer(bool set)
+{
+    m_platformer = set;
+}
+
 void PathFinding::drawCurrentPath()
 {
     for (QPoint tile_pos : m_current_tile.getParents())

@@ -85,6 +85,7 @@ public:
     PathFindingResult find();
 
     void setVisualDelayMs(int delay_ms);
+    void setPlatformer(bool);
 
 private:
     void drawCurrentPath();
@@ -98,6 +99,7 @@ protected:
     int m_total_checks;
     int m_visual_delay_ms;
     PathFindingTile m_current_tile;
+    bool m_platformer;
 
     virtual void reset() = 0;
     virtual void initSearch() = 0;
