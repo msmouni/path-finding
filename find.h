@@ -6,6 +6,33 @@
 #include <QElapsedTimer>
 #include "map.h"
 
+enum class MvmtDirection{
+    None,
+    TopLeft,
+    Top,
+    TopRight,
+    Left,
+    Right,
+    BottomLeft,
+    Bottom,
+    BottomRight
+};
+
+struct MvtToPoint{
+private:
+    QPoint m_point;
+    MvmtDirection m_prev_direction;
+public:
+    MvtToPoint(QPoint point, MvmtDirection prev_direction= MvmtDirection::None): m_point(point), m_prev_direction(prev_direction){};
+
+    QPoint& getPoint(){
+        return m_point;
+    }
+
+    MvmtDirection& getPrevMvmtDir(){
+        return m_prev_direction;
+    }
+};
 
 struct PathFindingResult
 {
@@ -41,7 +68,7 @@ protected:
     QElapsedTimer m_timer;
     int m_visual_delay_ms;
 
-    virtual void processTile(const int &tile_idx_x, const int &tile_idx_y) = 0;
+    virtual void processTile(const int &tile_idx_x, const int &tile_idx_y, MvmtDirection mvmt_dir) = 0;
     virtual void reset() = 0;
     void processAdjacentTiles(const QPoint &tile_idx);
 };

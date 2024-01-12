@@ -4,6 +4,28 @@
 #include "find.h"
 #include <QQueue>
 
+struct BfsTile{
+private:
+    MvtToPoint m_mvmt_point;
+    QVector<MvtToPoint> m_parents;
+public:
+    BfsTile(MvtToPoint mvmt_point, QVector<MvtToPoint> parents= QVector<MvtToPoint>()): m_mvmt_point(mvmt_point), m_parents(parents){};
+
+    QPoint& getPoint(){
+        return m_mvmt_point.getPoint();
+    }
+
+    // TMP
+    QVector<QPoint> getParentsPoints(){
+        QVector<QPoint> res;
+        for (MvtToPoint mvmt_point:m_parents){
+            res.append(mvmt_point.getPoint());
+        }
+        return res;
+    }
+
+};
+
 class Bfs : public PathFinding
 {
 public:
@@ -13,11 +35,12 @@ public:
     PathFindingResult find();
 
 private:
-    QQueue<QVector<QPoint>> m_queue;
-    QVector<QPoint> m_current_parents;
+    QQueue<BfsTile> m_queue;
+    BfsTile m_current_tile;
+//    QVector<BfsTile> m_current_parents;
 
     void reset();
-    void processTile(const int &tile_idx_x, const int &tile_idx_y);
+    void processTile(const int &tile_idx_x, const int &tile_idx_y, MvmtDirection mvmt_dir);
 };
 
 #endif // BFS_H

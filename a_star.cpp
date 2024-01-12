@@ -155,7 +155,7 @@ void Astar::reset()
     m_timer.restart();
 }
 
-void Astar::processTile(const int &tile_idx_x, const int &tile_idx_y)
+void Astar::processTile(const int &tile_idx_x, const int &tile_idx_y, MvmtDirection mvmt_dir)
 {
     if (0 <= tile_idx_x && tile_idx_x < m_map->getNbColumns() && 0 <= tile_idx_y && tile_idx_y < m_map->getNbRows())
     {

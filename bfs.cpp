@@ -23,8 +23,8 @@ PathFindingResult Bfs::find()
     {
         reset();
 
-        QVector<QPoint> start;
-        start.append(m_map->getStartIdx());
+        QVector<BfsTile> start;
+        start.append(BfsTile(MvtToPoint(m_map->getStartIdx())));
 
         m_queue.enqueue(start);
 
@@ -34,8 +34,8 @@ PathFindingResult Bfs::find()
         {
             total_checks+=1;
 
-            m_current_parents = m_queue.dequeue();
-            QPoint &current_tile = m_current_parents.last();
+            m_current_tile = m_queue.dequeue();
+//            QPoint &current_tile = m_current_parents.last().getPoint();
 
             TileType tile_type = m_map->getTileType(current_tile);
 
@@ -43,7 +43,7 @@ PathFindingResult Bfs::find()
             {
                 //            qDebug()<<current_parents;
                 qDebug() << "elapsed time" << duration << " us";
-                for (QPoint tile_pos : m_current_parents)
+                for (BfsTile tile: m_current_parents)
                 {
                     TileType tile_type = m_map->getTileType(tile_pos);
                     if (tile_type != TileType::Target && tile_type != TileType::Start)
@@ -113,7 +113,7 @@ void Bfs::reset()
     m_timer.restart();
 }
 
-void Bfs::processTile(const int &tile_idx_x, const int &tile_idx_y)
+void Bfs::processTile(const int &tile_idx_x, const int &tile_idx_y, MvmtDirection mvmt_dir)
 {
     // addTileToBfsQueue
     if (0 <= tile_idx_x && tile_idx_x < m_map->getNbColumns() && 0 <= tile_idx_y && tile_idx_y < m_map->getNbRows())
