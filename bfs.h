@@ -9,10 +9,18 @@ private:
     MvtToPoint m_mvmt_point;
     QVector<MvtToPoint> m_parents;
 public:
-    BfsTile(MvtToPoint mvmt_point, QVector<MvtToPoint> parents= QVector<MvtToPoint>()): m_mvmt_point(mvmt_point), m_parents(parents){};
+    BfsTile(MvtToPoint mvmt_point = MvtToPoint(QPoint(0, 0)), QVector<MvtToPoint> parents= QVector<MvtToPoint>()): m_mvmt_point(mvmt_point), m_parents(parents){};
 
     QPoint& getPoint(){
         return m_mvmt_point.getPoint();
+    }
+
+    MvtToPoint& getMvtToPoint(){
+        return m_mvmt_point;
+    }
+
+    QVector<MvtToPoint>& getParents(){
+        return m_parents;
     }
 
     // TMP
