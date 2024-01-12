@@ -25,6 +25,9 @@ public:
     const int &getNbColumns();
     void clearVisited();
     bool isReady();
+    bool containsTile(const int &pos_x, const int &pos_y);
+    bool containsTile(const QPoint &pos);
+    void loadMap(QVector<QVector<TileType>>);
 
 public slots:
     void setNbRows(int nb_rows);
@@ -68,7 +71,7 @@ private:
     // The mutex is locked when QMutexLocker is created. If locked, the mutex will be unlocked when the QMutexLocker is destroyed.
     QMutex m_mutex;
 
-    void init();
+    void init(QVector<QVector<TileType>> = {});
     void setStartIdx(QPoint idx);
     void setTargetIdx(QPoint idx);
 

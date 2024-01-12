@@ -5,6 +5,7 @@
 #include <QMap>
 #include "map.h"
 #include "run.h"
+#include "files.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui
@@ -23,6 +24,10 @@ public:
 private slots:
     void setVisualizationDelay(int val);
     void setPathFindingResult(RunResult);
+    void setPlatformer(int);
+    void findPath();
+    void saveMap();
+    void loadMap();
     void reset();
 
 private:
@@ -30,6 +35,7 @@ private:
 
     Map *m_map;
     PathFindingRunner *m_path_finder;
+    FilesHandler m_files_handler;
     // QMap: the items are always sorted by key
     QMap<PathFindingAlgos, PathFindingResult> m_path_finding_res;
 

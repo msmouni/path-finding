@@ -4,12 +4,14 @@
 #include <QGraphicsItem>
 #include <QPainter>
 
-enum class TileType
+enum class TileType : uint8_t
 {
     Empty,
     Solid,
     Start,
     Target,
+    VisitedUpWay,
+    VisitedDownWay,
     Visited,
     Current,
     Path,
@@ -18,8 +20,7 @@ enum class TileType
 class Tile : public QGraphicsItem
 {
 public:
-    Tile(QRectF rect, TileType type);
-    Tile(QRectF rect);
+    Tile(QRectF rect, TileType type = TileType::Empty);
 
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
@@ -27,6 +28,7 @@ public:
 
     void setType(TileType type);
     const TileType &getType();
+    bool isVisited();
 
 private:
     QRectF m_rect;

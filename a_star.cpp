@@ -16,7 +16,7 @@ void Astar::init()
         QVector<AstarCost> tile_line;
         for (int j = 0; j < m_map->getNbRows(); j++)
         {
-            tile_line.append(AstarCost(MAX_WEIGHT_VALUE, 0));
+            tile_line.append(AstarCost(MAX_WEIGHT_VALUE, MAX_JUMP_COUNT));
         }
 
         m_weight_map.append(tile_line);
@@ -31,8 +31,7 @@ void Astar::reinitWeightMap()
     {
         for (int j = 0; j < m_map->getNbRows(); j++)
         {
-            m_weight_map[i][j].setCost(MAX_WEIGHT_VALUE);
-            m_weight_map[i][j].setTargetCost(0);
+            m_weight_map[i][j].setJumpCost(MAX_WEIGHT_VALUE, MAX_JUMP_COUNT);
         }
     }
 }
@@ -70,17 +69,15 @@ void Astar::initSearch()
 {
     QPoint start_idx = m_map->getStartIdx();
 
-    m_weight_map[start_idx.x()][start_idx.y()].setCost(0);
+    m_weight_map[start_idx.x()][start_idx.y()].setJumpCost(0, 0);
 
-    qreal estimated_target_cost = getEstimatedTargetCost(start_idx);
-    m_weight_map[start_idx.x()][start_idx.y()].setTargetCost(estimated_target_cost);
-
-    m_priority_queue.push(AstarTile(start_idx, 0, estimated_target_cost));
+    m_priority_queue.push(AstarTile(start_idx, 0, getEstimatedTargetCost(start_idx)));
 }
 
 void Astar::updateCurrentTile()
 {
     m_current_tile = m_priority_queue.top().getTile();
+    m_current_tile_cost = m_priority_queue.top().getCost();
 
     m_priority_queue.pop();
 }
@@ -93,23 +90,37 @@ bool Astar::isQueueEmpty()
 void Astar::processTile(const int &tile_idx_x, const int &tile_idx_y)
 {
     const QPoint &current_tile_idx = m_current_tile.getPos();
-    int current_x = current_tile_idx.x();
-    int current_y = current_tile_idx.y();
 
-    qreal cost = sqrt(pow(current_x - tile_idx_x, 2) + pow(current_y - tile_idx_y, 2)) + m_weight_map[current_x][current_y].getCost();
+    qreal cost = sqrt(pow(current_tile_idx.x() - tile_idx_x, 2) + pow(current_tile_idx.y() - tile_idx_y, 2)) + m_current_tile_cost;
 
     if (m_weight_map[tile_idx_x][tile_idx_y].getCost() > cost)
     {
         m_weight_map[tile_idx_x][tile_idx_y].setCost(cost);
 
-        qreal target_cost = getEstimatedTargetCost(tile_idx_x, tile_idx_y);
-        m_weight_map[tile_idx_x][tile_idx_y].setTargetCost(target_cost);
-
         /*
          NOTE: When a new element is pushed into the priority queue,
-               it may lead to reallocation and invalidation of references or pointers to elements in the container,
-               including the references obtained from the previous calls of top().
-         */
-        m_priority_queue.push(AstarTile(QPoint(tile_idx_x, tile_idx_y), cost, target_cost, m_current_tile));
+              it may lead to reallocation and invalidation of references or pointers to elements in the container,
+              including the references obtained from the previous calls of top().
+        */
+        m_priority_queue.push(AstarTile(QPoint(tile_idx_x, tile_idx_y), cost, getEstimatedTargetCost(tile_idx_x, tile_idx_y), m_current_tile));
+    }
+}
+
+void Astar::processJumpTile(const int &tile_idx_x, const int &tile_idx_y)
+{
+    const QPoint &current_tile_idx = m_current_tile.getPos();
+
+    qreal cost = sqrt(pow(current_tile_idx.x() - tile_idx_x, 2) + pow(current_tile_idx.y() - tile_idx_y, 2)) + m_current_tile_cost;
+
+    if (m_weight_map[tile_idx_x][tile_idx_y].getCost() > cost || m_weight_map[tile_idx_x][tile_idx_y].getNbJump() > m_current_tile.getJumpCount())
+    {
+        m_weight_map[tile_idx_x][tile_idx_y].setJumpCost(cost, m_current_tile.getJumpCount());
+
+        /*
+        NOTE: When a new element is pushed into the priority queue,
+              it may lead to reallocation and invalidation of references or pointers to elements in the container,
+              including the references obtained from the previous calls of top().
+        */
+        m_priority_queue.push(AstarTile(QPoint(tile_idx_x, tile_idx_y), cost, getEstimatedTargetCost(tile_idx_x, tile_idx_y), m_current_tile));
     }
 }

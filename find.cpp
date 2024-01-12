@@ -36,7 +36,14 @@ PathFindingResult PathFinding::find()
                     return PathFindingResult(true, m_total_checks, m_duration_us, m_current_tile.getPath());
                 }
 
+                if (m_platformer && m_current_tile.getPos().y() + 1 < m_map->getNbRows() && m_map->getTileType(m_current_tile.getPos().x(), m_current_tile.getPos().y() + 1) == TileType::Solid)
+                {
+                    m_current_tile.setCanJump();
+                }
+
                 processAdjacentTiles(m_current_tile.getPos()); // new elements are pushed to the priority_queue, so references obtained by m_priority_queue.top() will be invalid
+
+                setCurrentTileVisited();
 
                 visualizeCurrentPath();
             }
@@ -49,6 +56,11 @@ PathFindingResult PathFinding::find()
 void PathFinding::setVisualDelayMs(int delay_ms)
 {
     m_visual_delay_ms = delay_ms;
+}
+
+void PathFinding::setPlatformer(bool set)
+{
+    m_platformer = set;
 }
 
 void PathFinding::drawCurrentPath()
@@ -71,10 +83,14 @@ void PathFinding::visualizeCurrentPath()
 {
     m_duration_us += m_timer.nsecsElapsed() / 1000;
 
+    QHash<QPoint, TileType> actual_types;
+
     for (QPoint tile_pos : m_current_tile.getPath())
     {
-        if (m_map->getTileType(tile_pos) != TileType::Start)
+        TileType tile_type = m_map->getTileType(tile_pos);
+        if (tile_type != TileType::Start && tile_type != TileType::Current)
         {
+            actual_types.insert(tile_pos, m_map->getTileType(tile_pos));
             m_map->setTileType(tile_pos, TileType::Current);
         }
     }
@@ -83,12 +99,9 @@ void PathFinding::visualizeCurrentPath()
 
     QThread::msleep(m_visual_delay_ms);
 
-    for (QPoint tile_pos : m_current_tile.getPath())
+    for (auto [tile_pos, tile_type] : actual_types.asKeyValueRange())
     {
-        if (m_map->getTileType(tile_pos) != TileType::Start)
-        {
-            m_map->setTileType(tile_pos, TileType::Visited);
-        }
+        m_map->setTileType(tile_pos, tile_type);
     }
 
     m_timer.restart();
@@ -96,26 +109,82 @@ void PathFinding::visualizeCurrentPath()
 
 void PathFinding::tryToProcessTile(const int &tile_idx_x, const int &tile_idx_y, AdjacentTile which_tile)
 {
-    if (0 <= tile_idx_x && tile_idx_x < m_map->getNbColumns() && 0 <= tile_idx_y && tile_idx_y < m_map->getNbRows())
+    if (m_map->containsTile(tile_idx_x, tile_idx_y))
     {
         TileType tile_type = m_map->getTileType(tile_idx_x, tile_idx_y);
-        if (tile_type == TileType::Empty || tile_type == TileType::Target)
+
+        bool going_up = which_tile == AdjacentTile::Top || which_tile == AdjacentTile::TopLeft || which_tile == AdjacentTile::TopRight;
+
+        bool is_tile_valid = tile_type == TileType::Empty || tile_type == TileType::Target || (m_platformer && ((tile_type == TileType::VisitedDownWay && going_up) || (tile_type == TileType::VisitedUpWay)));
+
+        if (is_tile_valid)
         {
             switch (which_tile)
             {
             case AdjacentTile::Left:
             {
-                processTile(tile_idx_x, tile_idx_y);
+                // Tile is on platform
+                if (!m_platformer || (tile_idx_y + 1 < m_map->getNbRows() && m_map->getTileType(tile_idx_x + 1, tile_idx_y + 1) == TileType::Solid))
+                {
+                    processTile(tile_idx_x, tile_idx_y);
+                }
                 break;
             }
             case AdjacentTile::Right:
             {
-                processTile(tile_idx_x, tile_idx_y);
+                // Tile is on platform
+                if (!m_platformer || (tile_idx_y + 1 < m_map->getNbRows() && m_map->getTileType(tile_idx_x - 1, tile_idx_y + 1) == TileType::Solid))
+                {
+                    processTile(tile_idx_x, tile_idx_y);
+                }
                 break;
             }
             case AdjacentTile::Top:
             {
-                processTile(tile_idx_x, tile_idx_y);
+                if (!m_platformer)
+                {
+                    processTile(tile_idx_x, tile_idx_y);
+                }
+                else if (m_current_tile.canJump())
+                {
+                    processJumpTile(tile_idx_x, tile_idx_y);
+                }
+                break;
+            }
+            case AdjacentTile::TopLeft:
+            {
+                // Is accessible
+                bool is_not_corner = m_map->getTileType(tile_idx_x, tile_idx_y + 1) != TileType::Solid || m_map->getTileType(tile_idx_x + 1, tile_idx_y) != TileType::Solid;
+
+                if (is_not_corner)
+                {
+                    if (!m_platformer)
+                    {
+                        processTile(tile_idx_x, tile_idx_y);
+                    }
+                    else if (m_current_tile.canJump())
+                    {
+                        processJumpTile(tile_idx_x, tile_idx_y);
+                    }
+                }
+                break;
+            }
+            case AdjacentTile::TopRight:
+            {
+                // Is accessible
+                bool is_not_corner = m_map->getTileType(tile_idx_x, tile_idx_y + 1) != TileType::Solid || m_map->getTileType(tile_idx_x - 1, tile_idx_y) != TileType::Solid;
+
+                if (is_not_corner)
+                {
+                    if (!m_platformer)
+                    {
+                        processTile(tile_idx_x, tile_idx_y);
+                    }
+                    else if (m_current_tile.canJump())
+                    {
+                        processJumpTile(tile_idx_x, tile_idx_y);
+                    }
+                }
                 break;
             }
             case AdjacentTile::Bottom:
@@ -123,25 +192,12 @@ void PathFinding::tryToProcessTile(const int &tile_idx_x, const int &tile_idx_y,
                 processTile(tile_idx_x, tile_idx_y);
                 break;
             }
-            case AdjacentTile::TopLeft:
-            {
-                if (m_map->getTileType(tile_idx_x, tile_idx_y + 1) != TileType::Solid && m_map->getTileType(tile_idx_x + 1, tile_idx_y) != TileType::Solid)
-                {
-                    processTile(tile_idx_x, tile_idx_y);
-                }
-                break;
-            }
             case AdjacentTile::BottomLeft:
             {
-                if (m_map->getTileType(tile_idx_x, tile_idx_y - 1) != TileType::Solid && m_map->getTileType(tile_idx_x + 1, tile_idx_y) != TileType::Solid)
-                {
-                    processTile(tile_idx_x, tile_idx_y);
-                }
-                break;
-            }
-            case AdjacentTile::TopRight:
-            {
-                if (m_map->getTileType(tile_idx_x, tile_idx_y + 1) != TileType::Solid && m_map->getTileType(tile_idx_x - 1, tile_idx_y) != TileType::Solid)
+                // Is accessible
+                bool is_not_corner = m_map->getTileType(tile_idx_x, tile_idx_y - 1) != TileType::Solid || m_map->getTileType(tile_idx_x + 1, tile_idx_y) != TileType::Solid;
+
+                if (is_not_corner)
                 {
                     processTile(tile_idx_x, tile_idx_y);
                 }
@@ -149,7 +205,10 @@ void PathFinding::tryToProcessTile(const int &tile_idx_x, const int &tile_idx_y,
             }
             case AdjacentTile::BottomRight:
             {
-                if (m_map->getTileType(tile_idx_x, tile_idx_y - 1) != TileType::Solid && m_map->getTileType(tile_idx_x - 1, tile_idx_y) != TileType::Solid)
+                // Is accessible
+                bool is_not_corner = m_map->getTileType(tile_idx_x, tile_idx_y - 1) != TileType::Solid || m_map->getTileType(tile_idx_x - 1, tile_idx_y) != TileType::Solid;
+
+                if (is_not_corner)
                 {
                     processTile(tile_idx_x, tile_idx_y);
                 }
@@ -158,6 +217,28 @@ void PathFinding::tryToProcessTile(const int &tile_idx_x, const int &tile_idx_y,
             default:
                 break;
             }
+        }
+    }
+}
+
+void PathFinding::setCurrentTileVisited()
+{
+    const QPoint &current_pos = m_current_tile.getPos();
+    const TileType &current_type = m_map->getTileType(current_pos);
+
+    if (current_type != TileType::Start)
+    {
+        if (!m_platformer || (current_type == TileType::VisitedDownWay && m_current_tile.isReachedUpWay()) || (current_type == TileType::VisitedUpWay && !m_current_tile.isReachedUpWay()))
+        {
+            m_map->setTileType(current_pos, TileType::Visited);
+        }
+        else if (m_current_tile.isReachedUpWay())
+        {
+            m_map->setTileType(current_pos, TileType::VisitedUpWay);
+        }
+        else
+        {
+            m_map->setTileType(current_pos, TileType::VisitedDownWay);
         }
     }
 }
