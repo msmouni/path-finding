@@ -154,7 +154,7 @@ void PathFinding::tryToProcessTile(const int &tile_idx_x, const int &tile_idx_y,
             case AdjacentTile::TopLeft:
             {
                 // Is accessible
-                bool is_not_corner = m_map->getTileType(tile_idx_x, tile_idx_y + 1) != TileType::Solid || m_map->getTileType(tile_idx_x + 1, tile_idx_y) != TileType::Solid;
+                bool is_not_corner = m_map->getTileType(tile_idx_x, tile_idx_y + 1) != TileType::Solid && m_map->getTileType(tile_idx_x + 1, tile_idx_y) != TileType::Solid;
 
                 if (is_not_corner)
                 {
@@ -172,7 +172,7 @@ void PathFinding::tryToProcessTile(const int &tile_idx_x, const int &tile_idx_y,
             case AdjacentTile::TopRight:
             {
                 // Is accessible
-                bool is_not_corner = m_map->getTileType(tile_idx_x, tile_idx_y + 1) != TileType::Solid || m_map->getTileType(tile_idx_x - 1, tile_idx_y) != TileType::Solid;
+                bool is_not_corner = m_map->getTileType(tile_idx_x, tile_idx_y + 1) != TileType::Solid && m_map->getTileType(tile_idx_x - 1, tile_idx_y) != TileType::Solid;
 
                 if (is_not_corner)
                 {
@@ -195,7 +195,7 @@ void PathFinding::tryToProcessTile(const int &tile_idx_x, const int &tile_idx_y,
             case AdjacentTile::BottomLeft:
             {
                 // Is accessible
-                bool is_not_corner = m_map->getTileType(tile_idx_x, tile_idx_y - 1) != TileType::Solid || m_map->getTileType(tile_idx_x + 1, tile_idx_y) != TileType::Solid;
+                bool is_not_corner = m_map->getTileType(tile_idx_x, tile_idx_y - 1) != TileType::Solid && m_map->getTileType(tile_idx_x + 1, tile_idx_y) != TileType::Solid;
 
                 if (is_not_corner)
                 {
@@ -206,7 +206,7 @@ void PathFinding::tryToProcessTile(const int &tile_idx_x, const int &tile_idx_y,
             case AdjacentTile::BottomRight:
             {
                 // Is accessible
-                bool is_not_corner = m_map->getTileType(tile_idx_x, tile_idx_y - 1) != TileType::Solid || m_map->getTileType(tile_idx_x - 1, tile_idx_y) != TileType::Solid;
+                bool is_not_corner = m_map->getTileType(tile_idx_x, tile_idx_y - 1) != TileType::Solid && m_map->getTileType(tile_idx_x - 1, tile_idx_y) != TileType::Solid;
 
                 if (is_not_corner)
                 {
