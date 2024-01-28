@@ -1,6 +1,6 @@
 #include "view.h"
 
-View::View(QWidget *parent)
+View::View(QWidget *parent) : QGraphicsView(parent)
 {
     m_scene = new QGraphicsScene(this);
     this->setScene(m_scene);
