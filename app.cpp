@@ -38,6 +38,11 @@ App::App(QWidget *parent)
     // Files
     connect(ui->loadButton, SIGNAL(pressed()), this, SLOT(loadMap()));
     connect(ui->saveButton, SIGNAL(pressed()), this, SLOT(saveMap()));
+
+    // Log
+    m_log_timer = new QTimer;
+    connect(m_log_timer, &QTimer::timeout, this, &App::updateLog);
+    m_log_timer->start(M_LOG_TIMER_PERIOD_MS);
 }
 
 App::~App()
@@ -55,14 +60,11 @@ void App::setPathFindingResult(RunResult res)
 {
     ui->platformer_check->setEnabled(true);
     m_path_finding_res.insert(res.m_algo, res.m_path_finding);
-
-    setLogText(getPathFindingLog());
 }
 
 void App::setPlatformer(int state)
 {
     m_path_finding_res.clear();
-    setLogText(getPathFindingLog());
     m_path_finder->setPlatformer(state == Qt::Checked);
 }
 
@@ -100,8 +102,31 @@ void App::reset()
 {
     m_path_finding_res.clear();
     m_path_finder->reinit();
-    setLogText(getPathFindingLog());
     ui->platformer_check->setEnabled(true);
+}
+
+void App::updateLog()
+{
+    if (!m_map->isReady())
+    {
+        QString log;
+
+        if (!m_map->isStartSet())
+        {
+            log += QString("%1 Press 'S' + click on a tile to set the starting tile\n").arg(QChar(0x2022));
+        }
+
+        if (!m_map->isTargetSet())
+        {
+            log += QString("%1 Press 'T' + click on a tile to set the target tile\n").arg(QChar(0x2022));
+        }
+
+        setLogText(log);
+    }
+    else
+    {
+        setLogText(getPathFindingLog());
+    }
 }
 
 void App::setLogText(QString txt)

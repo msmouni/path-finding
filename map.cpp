@@ -366,7 +366,17 @@ void Map::clearVisited()
 
 bool Map::isReady()
 {
-    return m_target_set && m_start_set;
+    return isTargetSet() && isStartSet();
+}
+
+bool Map::isTargetSet()
+{
+    return m_target_set;
+}
+
+bool Map::isStartSet()
+{
+    return m_start_set;
 }
 
 bool Map::containsTile(const int &pos_x, const int &pos_y)
