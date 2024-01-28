@@ -6,6 +6,7 @@ This project is an implementation of the following pathfinding algorithms:
 * BFS (Breadth-First Search)
 * Dijkstra
 * A*
+
 It visualizes on a graph represented by a tile-based map the process of finding a path between a start tile and an end tile. It also allows to compare the performance of the implemented algorithms.
 
 ![alt text](https://github.com/msmouni/path-finding/blob/main/Doc/Pathfinding_Visualization.gif "Pathfinding visualization")
