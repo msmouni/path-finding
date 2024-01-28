@@ -7,6 +7,7 @@
 PathFinding::PathFinding(QObject *parent, Map *map, int visual_delay_ms)
     : QObject{parent}, m_map(map), m_visual_delay_ms(visual_delay_ms)
 {
+    m_platformer = false;
     m_timer.start();
 }
 
@@ -123,19 +124,40 @@ void PathFinding::tryToProcessTile(const int &tile_idx_x, const int &tile_idx_y,
             {
             case AdjacentTile::Left:
             {
-                // Tile is on platform
-                if (!m_platformer || (tile_idx_y + 1 < m_map->getNbRows() && m_map->getTileType(tile_idx_x + 1, tile_idx_y + 1) == TileType::Solid))
+                if (!m_platformer)
                 {
                     processTile(tile_idx_x, tile_idx_y);
                 }
+                else
+                {
+                    bool bottom_tile_in_map = tile_idx_y + 1 < m_map->getNbRows();
+                    bool current_tile_on_platform = bottom_tile_in_map && m_map->getTileType(tile_idx_x + 1, tile_idx_y + 1) == TileType::Solid;
+                    bool up_way_left_tile_on_platform = bottom_tile_in_map && m_current_tile.isReachedUpWay() && m_map->getTileType(tile_idx_x, tile_idx_y + 1) == TileType::Solid;
+
+                    if (current_tile_on_platform || up_way_left_tile_on_platform)
+                    {
+                        processTile(tile_idx_x, tile_idx_y);
+                    }
+                }
+
                 break;
             }
             case AdjacentTile::Right:
             {
-                // Tile is on platform
-                if (!m_platformer || (tile_idx_y + 1 < m_map->getNbRows() && m_map->getTileType(tile_idx_x - 1, tile_idx_y + 1) == TileType::Solid))
+                if (!m_platformer)
                 {
                     processTile(tile_idx_x, tile_idx_y);
+                }
+                else
+                {
+                    bool bottom_tile_in_map = tile_idx_y + 1 < m_map->getNbRows();
+                    bool current_tile_on_platform = bottom_tile_in_map && m_map->getTileType(tile_idx_x - 1, tile_idx_y + 1) == TileType::Solid;
+                    bool up_way_right_tile_on_platform = bottom_tile_in_map && m_current_tile.isReachedUpWay() && m_map->getTileType(tile_idx_x, tile_idx_y + 1) == TileType::Solid;
+
+                    if (current_tile_on_platform || up_way_right_tile_on_platform)
+                    {
+                        processTile(tile_idx_x, tile_idx_y);
+                    }
                 }
                 break;
             }
@@ -154,7 +176,7 @@ void PathFinding::tryToProcessTile(const int &tile_idx_x, const int &tile_idx_y,
             case AdjacentTile::TopLeft:
             {
                 // Is accessible
-                bool is_not_corner = m_map->getTileType(tile_idx_x, tile_idx_y + 1) != TileType::Solid || m_map->getTileType(tile_idx_x + 1, tile_idx_y) != TileType::Solid;
+                bool is_not_corner = m_map->getTileType(tile_idx_x, tile_idx_y + 1) != TileType::Solid && m_map->getTileType(tile_idx_x + 1, tile_idx_y) != TileType::Solid;
 
                 if (is_not_corner)
                 {
@@ -172,7 +194,7 @@ void PathFinding::tryToProcessTile(const int &tile_idx_x, const int &tile_idx_y,
             case AdjacentTile::TopRight:
             {
                 // Is accessible
-                bool is_not_corner = m_map->getTileType(tile_idx_x, tile_idx_y + 1) != TileType::Solid || m_map->getTileType(tile_idx_x - 1, tile_idx_y) != TileType::Solid;
+                bool is_not_corner = m_map->getTileType(tile_idx_x, tile_idx_y + 1) != TileType::Solid && m_map->getTileType(tile_idx_x - 1, tile_idx_y) != TileType::Solid;
 
                 if (is_not_corner)
                 {
@@ -195,7 +217,7 @@ void PathFinding::tryToProcessTile(const int &tile_idx_x, const int &tile_idx_y,
             case AdjacentTile::BottomLeft:
             {
                 // Is accessible
-                bool is_not_corner = m_map->getTileType(tile_idx_x, tile_idx_y - 1) != TileType::Solid || m_map->getTileType(tile_idx_x + 1, tile_idx_y) != TileType::Solid;
+                bool is_not_corner = m_map->getTileType(tile_idx_x, tile_idx_y - 1) != TileType::Solid && m_map->getTileType(tile_idx_x + 1, tile_idx_y) != TileType::Solid;
 
                 if (is_not_corner)
                 {
@@ -206,7 +228,7 @@ void PathFinding::tryToProcessTile(const int &tile_idx_x, const int &tile_idx_y,
             case AdjacentTile::BottomRight:
             {
                 // Is accessible
-                bool is_not_corner = m_map->getTileType(tile_idx_x, tile_idx_y - 1) != TileType::Solid || m_map->getTileType(tile_idx_x - 1, tile_idx_y) != TileType::Solid;
+                bool is_not_corner = m_map->getTileType(tile_idx_x, tile_idx_y - 1) != TileType::Solid && m_map->getTileType(tile_idx_x - 1, tile_idx_y) != TileType::Solid;
 
                 if (is_not_corner)
                 {

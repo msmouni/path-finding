@@ -25,6 +25,8 @@ public:
     const int &getNbColumns();
     void clearVisited();
     bool isReady();
+    bool isTargetSet();
+    bool isStartSet();
     bool containsTile(const int &pos_x, const int &pos_y);
     bool containsTile(const QPoint &pos);
     void loadMap(QVector<QVector<TileType>>);
