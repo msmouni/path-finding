@@ -6,6 +6,8 @@ App::App(QWidget *parent)
 {
     ui->setupUi(this);
 
+    this->setWindowTitle("Pathfinding Visualization");
+
     m_map = ui->graphicsView->getMapPtr();
 
     // Algo Selection
