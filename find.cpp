@@ -7,6 +7,7 @@
 PathFinding::PathFinding(QObject *parent, Map *map, int visual_delay_ms)
     : QObject{parent}, m_map(map), m_visual_delay_ms(visual_delay_ms)
 {
+    m_platformer = false;
     m_timer.start();
 }
 
