@@ -16,3 +16,6 @@ It visualizes on a graph represented by a tile-based map the process of finding 
 This project also includes an adaptation of pathfinding algorithms for movement on a platform, which can therefore be used in platformer games.
 
 ![alt text](https://github.com/msmouni/path-finding/blob/main/Doc/Pathfinding_Platformer_Visualization.gif "Pathfinding platformer visualization")
+
+# Demo
+https://msmouni.github.io/path-finding/
