@@ -52,9 +52,52 @@ void FilesHandler::saveMap(Map *map)
 
 void FilesHandler::loadMap(Map *map)
 {
-    QString fileName = QFileDialog::getOpenFileName(nullptr, "Open CSV File", "", "CSV Files (*.csv)");
+//    QString fileName = QFileDialog::getOpenFileName(nullptr, "Open CSV File", "", "CSV Files (*.csv)");
 
-    if (!fileName.isEmpty())
+    //////////////////////////////////
+    auto fileContentReady = [](const QString &fileName, const QByteArray &fileContent) {
+        if (fileName.isEmpty()) {
+            // No file was selected
+        } else {
+            // Use fileName and fileContent
+            QTextStream in(fileContent);
+
+            QVector<QVector<TileType>> tiles_type_map;
+
+            while (!in.atEnd())
+            {
+                QString line = in.readLine();
+                QStringList values = line.split(",", Qt::SkipEmptyParts);
+
+                QVector<TileType> row;
+
+                for (const QString &value : values)
+                {
+                    bool conversionOK;
+                    uint8_t int_value = value.toInt(&conversionOK, 10);
+                    if (conversionOK)
+                    {
+                        row.append(static_cast<TileType>(int_value));
+                    }
+                    else
+                    {
+                        qDebug() << "Error converting value to int:" << value;
+                    }
+                }
+
+                tiles_type_map.append(row);
+            }
+
+//            file.close();
+
+//            map->loadMap(tiles_type_map);
+
+            qDebug() << "Map loaded from CSV file:" << fileName;
+        }
+    };
+    QFileDialog::getOpenFileContent("CSV Files (*.csv)",  fileContentReady);
+    ///////////////////////////////////
+    /*if (!fileName.isEmpty())
     {
         QFile file(fileName);
         if (file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -97,5 +140,5 @@ void FilesHandler::loadMap(Map *map)
         {
             qDebug() << "Unable to open file:" << fileName;
         }
-    }
+    }*/
 }
